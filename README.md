@@ -12,7 +12,7 @@ By integrating event publishing and management, ticket generation and validation
 
 ## Objective and Key Features
 ### Objective:
-The objective of this project is to develop an event ticketing platform, which includes an organizer mode for creating events and a customer mode for users to purchase tickets and receive downloadable QR codes for entry.
+The objective of this project is to develop an event ticketing platform, which includes an organizer mode for managing events and a customer mode for users to purchase and manage tickets. Specifically, organizers will be able to create events, monitor ticket selling status, and verify user-uploaded documents for discounts. Customers will be able to register/login, view event information, make purchases, upload documents and receive their downloadable tickets (a QR code with other information).  
 
 ### Core Features:
 #### Technical implementation approach
@@ -20,14 +20,9 @@ Frontend: TypeScript, React
 Backend: TypeScript, Express.js  
 Tailwind CSS will be used for styling.  
 shadcn/ui library will be used to assist development and improve efficiency.  
-Responsive frontend designs will be implemented, such as live notification and live dashboard updates (see advanced features for details).  
 
 #### Database schema and relationships
 TypeScript will be used for all backend/server code, and the relational database will be created using PostgreSQL.  
-The PostgreSQL database will be used for organizer registration, customer profiles, event information and tickets.  
-Organizers will be able to create events, monitor ticket selling status, and verify user-uploaded documents for discounts.  
-Customers will be able to register/login, view event information, make purchases, upload documents and receive their downloadable tickets (a QR code with other information).  
-
 Database schema includes tables for organizer/customer accounts, event information, ticket information, etc. Here are some examples:  
 e.g.
 ```ruby
@@ -71,10 +66,7 @@ DigitalOcean object storage will be applied for stable and persistent access of 
 If potential system maintenance or upgrade happens and restart of the platform is required, users will still be able to retrieve their event and ticket information.  
 
 #### User interface and experience design
-The application’s UI design aims to provide an intuitive interface to make interactions clear and consistent. The application will feature a dashboard for both event organizers and customers. Before users log in, all events will be displayed on the homepage, and everyone will be able to search and read through them. After login, there will be a selection of operation modes, organizer or customer. Organizers will get a dashboard where they can easily create/edit/delete events, and monitor ticket sales. Customers can make their purchases, and download their tickets containing event info and a QR-code for entry.  
-
-The application’s UX design focuses on making the user journey efficient, intuitive, and satisfying. Organizers can create events and manage tickets in just a few steps, while customers can search for events, purchase tickets, and download QR codes with ease. Clear navigation, step-by-step guidance, and feedback mechanisms such as confirmation messages and error alerts, will ensure that users can understand each action and complete tasks quickly and confidently.  
- 
+The application’s UI design aims to provide an intuitive interface to make interactions clear and consistent. The application will feature a dashboard for both event organizers and customers. Before users log in, all events will be displayed on the homepage, and everyone will be able to search and read through them. After login, there will be a selection of organizer or customer modes. Organizers will get a dashboard where they can easily create/edit/delete events, and monitor ticket sales. Customers can make their purchases, and download their tickets containing event info and a QR-code for entry. Clear navigation, step-by-step guidance, and feedback mechanisms such as confirmation messages and error alerts, will ensure that users can understand each action.
  
 #### Advanced Features
 Depending on time available, the team will implement the advanced features in the following order, with at least 2 completed.  
@@ -88,10 +80,6 @@ Depending on time available, the team will implement the advanced features in th
 - Integration with External Services:  
   - An endpoint will be built to automatically notify users about new events or event information updates, through email using SendGrid, if they provide their emails during registration and are willing to receive such notifications.
   - Other notifications like new discount opportunities will be optionally implemented.  
-- File Handling and Processing:  
-  - Automated document validation will be applied, including extracting and processing information from uploaded images or pdfs, for specific events requiring age verification or special offers like student discounts.  
-- Database Backup and Recovery:  
-  - Weekly or monthly snapshots of PostgreSQL databases will be taken to DigitalOcean storage depending on usage, to prevent data loss.  
 
 ### Fulfillment of Course Requirements:  
 Here is a summary of key features which are compliant with course requirements.  
@@ -110,15 +98,11 @@ Here is a summary of key features which are compliant with course requirements.
   - User Authentication and Authorization: register/login, access control, etc.
   - Real-Time Functionality: live notification and dashboard updates.
   - Integration with External Services: email notifications.
-  - File Handling and Processing: automated information extraction and processing from uploaded documents.
-  - Database backup and recovery: automated database snapshots to DigitalOcean storage.  
 
-These features are aligned with the course’s requirements for a full-stack web application, and will deliver a practical event ticketing experience. Note that the additional features listed above included the full plan of the team. Two additional features will be guaranteed, while the rest are tentative depending on time available.  
- 
 ### Scope:
 This project focuses on full-stack web development elements. 
 - The main scope of the project is to develop a web application with complete backend/frontend environments, aiming for simple event organization and small-scale ticket sales activities. Some basic additions such as cloud storage are also inside the scope to hence the reliability of the tool. Only fundamental features discussed in above sections are inside the scope.
-- Sophisticated security designs and database designs are not in the scope. Transaction mechanisms are not in the scope but may be implemented. Transaction protections are not in the scope. Performance and traffic controls are also not focused.
+- Sophisticated security designs and database designs are not in the scope. Real transaction mechanisms and protections are not in the scope. Performance and traffic controls are also not focused.
   - However, these are all valuable features in an event ticketing system and could be saved as potential improvements for the future. The team is interested in pursuing beyond the requirements after the course.
  
 ### Feasibility:
@@ -126,9 +110,8 @@ The objective and scope of the project is achievable within the course timeframe
 
 Detailed plans and work distributions can be found in the below section: Tentative Plan.
 
-
 ## Tentative Plan
-Our project timeline is approximately four weeks from March 1 to 28. The specific assignment of team members (A and B) will be finalized during Phase 1 after further discussion and detailed planning. We mainly divide the development process into four phases based on the following task allocation:
+Our project timeline is approximately four weeks from March 1 to 28. The specific assignment of team members (A and B) will be finalized during Phase 1 after further discussion and detailed planning. We mainly divide the development process into four phases:
 
 Phase 1: System Design & Project Setup (week 1- March 1 to 7)
 During the first phase, we will:
@@ -170,26 +153,24 @@ Phase 4: Additional Feature Development & Finalization (week 4 - March 22 to 28)
 In this final phase, the team will implement additional features and conduct final testing. At least two additional features will be guaranteed to be completed, while the remaining features will be implemented if time permits. At the same time, the final deliverables will be prepared collaboratively by the team members. The following additional features work division will be:
 - Additional Feature
   - Real-Time Updates (WebSocket) (A)
-  - Email Notification for new events (A)
-  - Document Upload & Validation (B)
-  - Automated database backup and recovery (B)
+  - Email Notification for new events (B)
 - Final testing and bug fixes (A&B)
 - Prepare final report and documentation (A&B)
 - Record demo video (A&B)
 
 ## Initial Independent Reasoning (Before Using AI)
-Our initial decision is to use separate frontend and backend, with React for frontend, and Express for backend with REST APIs. In this way, the frontend and backend are independent which makes the code easier to understand and maintain. The UI logic will not mix with authentication rules or database updates, making the code development clear and safe. Additionally, this allows a better independent development. For a team project, separating frontend and backend makes parallel work easier.
+Our initial decision is to use separate frontend and backend, with React for frontend, and Express for backend with REST APIs. In this way, the frontend and backend are independent which makes the code easier to understand and maintain.This also allows a better independent development. For a team project, separating frontend and backend makes parallel work easier.
 
 For the database, we expect to have the following relational entities stored in PostgreSQL: Users, Events, Registrations, Tickets, Student Verification. The database will be processed in the backend to ensure consistency and the frontend will primarily fetch and display data through REST APIs. The client-side state will be limited to UI interactions such as form inputs. 
 
-We will focus on building a complete workflow instead of adding many features in the beginning. Our core features include: role-based authentication (Organizer or Attendee), event creation and management, QR-based ticket generation and validation, student ID upload and verification. For additional features, we select:... We will not implement real payment processing, considering the complexity of it within the limited timeline. Our aim is to build a smaller but well-integrated system instead of a larger but incomplete platform. 
+We will focus on building a complete workflow instead of adding many features in the beginning. Our main features include: role-based authentication (Organizer or Attendee), event creation and management, QR-based ticket generation and validation, student ID upload and verification. For additional features, we still need to decide. We will not implement real payment processing, considering the complexity of it within the limited timeline. Our aim is to build a smaller but well-integrated system instead of a larger but incomplete platform. 
 
 Before start, we expect the following challenges: 
-· We need to design a clean role-based authentication since organizers and attendees have different interfaces and permissions. We need to prevent unauthorized actions. 
-· Building system architecture and designing a feasible database schema could be challenging because it is the basement of the whole project. We need to think clearly about how to coordinate frontend and backend development.
-· Secure QR validation may be a challenge because we may need to cope with multiple requests simultaneously. The backend logic needed to be carefully designed to ensure safety. 
+- We need to design a clean role-based authentication since organizers and attendees have different interfaces and permissions.
+- Building system architecture and designing a feasible database schema could be challenging because it is the basement of the whole project. We need to think clearly about how to coordinate frontend and backend development.
+- Secure QR validation may be a challenge because we may need to cope with multiple requests simultaneously. The backend logic needed to be carefully designed to ensure safety. 
 
-For work division, we decided to divide responsibilities by features rather than strictly separating frontend and backend work. We will divide the main features (e.g., authentication, ticket generation, student validation) to each team member since this would reduce fragmentation and improve consistency. Before feature implementation, we plan to jointly design the database schema, project architecture and  APIs to ensure misunderstanding and inconsistency in the later phase. 
+For work division, we decided to divide responsibilities by features. We will divide the main features to each team member since this would reduce fragmentation and improve consistency. Before feature implementation, we plan to jointly design the database schema, project architecture and APIs to ensure misunderstanding and inconsistency in the later phase. 
 
 ## AI Assistance Disclosure
 We did not use AI at all in part 4 and 5. We mainly use AI tools on grammar checking in part 1, 2 and 3. For example, in the motivation part, we asked AI if there are any grammar mistakes or phrases that need improvement. AI suggested that we can change “event posting and managing” to “event publishing and management”. We discussed whether the change would affect the clarity of the sentence. We decided to adopt the AI’s suggestion because it sounds more formal.
