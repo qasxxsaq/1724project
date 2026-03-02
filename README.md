@@ -20,6 +20,7 @@ Frontend: TypeScript, React
 Backend: TypeScript, Express.js  
 Tailwind CSS will be used for styling.  
 shadcn/ui library will be used to assist development and improve efficiency.  
+Responsive frontend designs will be implemented, such as live notification and live dashboard updates.  
 
 #### Database schema and relationships
 TypeScript will be used for all backend/server code, and the relational database will be created using PostgreSQL.  
@@ -27,6 +28,7 @@ Database schema includes tables for organizer/customer accounts, event informati
 e.g.
 ```ruby
 CREATE SCHEMA event_ticketing_app;
+
 -- Users table
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
@@ -34,26 +36,15 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-```
-Note: Both the organizers and the customers are users of this application, and hence use the same table.
-```ruby
--- Events table
-CREATE TABLE events (
-    event_id INTEGER PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    location VARCHAR(255) NOT NULL,
-    created_by INTEGER NOT NULL,
-    start_time TIMESTAMP NOT NULL,
-    end_time TIMESTAMP NOT NULL,
-    max_tickets INTEGER NOT NULL,
-    price INTEGER NOT NULL
-);
+
 -- Tickets table
 CREATE TABLE tickets (
     ticket_id INTEGER PRIMARY KEY,
     event_id INTEGER NOT NULL
     belongs_to INTEGER NOT NULL
 );
+
+...
 ```
 
 Database relationships include the following:  
