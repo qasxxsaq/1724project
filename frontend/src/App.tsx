@@ -4,20 +4,25 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import EventList from "./pages/EventList";
 import CreateEvent from "./pages/CreateEvent";
+import EditEvent from "./pages/EditEvent";
+import Navbar from "./components/Navbar";
+import MyEvents from "./pages/MyEvents";
 
 function App() {
   return (
     <BrowserRouter>
+      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/events" element={<EventList />} />
         <Route path="/create" element={<CreateEvent />} />
+        <Route path="/my-events" element={<MyEvents />} />
+        <Route path="/my-events/edit/:id" element={<EditEvent />} />
       </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
-

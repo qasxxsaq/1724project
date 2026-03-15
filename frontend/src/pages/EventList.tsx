@@ -15,6 +15,7 @@ export default function EventList() {
       .then(res => alert(res.data.message))
       .catch(err => alert(err.response.data));
   };
+  const role = localStorage.getItem("role");
 
   return (
     <div>
@@ -25,7 +26,9 @@ export default function EventList() {
           <p>{e.location} | {e.date} {e.time}</p>
           <p>${e.price} | Tickets left: {e.ticketsLeft}</p>
           <p>{e.info}</p>
-          <button onClick={() => buyTicket(e.id)}>Buy Ticket</button>
+          {role === "customer" && (
+            <button onClick={() => buyTicket(e.id)}>Buy Ticket</button>
+)         }
         </div>
       ))}
     </div>
