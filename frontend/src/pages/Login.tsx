@@ -12,6 +12,7 @@ export default function Login() {
       const res = await axios.post("http://localhost:4000/auth/login", { username, password });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
+      localStorage.setItem("userId", res.data.userId || "");
       alert("Login successful");
       navigate("/events");
     } catch (err: any) {

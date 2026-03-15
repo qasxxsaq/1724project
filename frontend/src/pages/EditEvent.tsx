@@ -18,12 +18,13 @@ export default function EditEvent() {
   useEffect(() => {
     if (!id) return;
     axios
-      .get("http://localhost:4000/events")
+      .get(`http://localhost:4000/events/${id}`)
       .then((res) => {
-        const found = res.data.find((item: Event) => item.id === id);
-        if (!found) {
-          alert("Event not found");
-          navigate("/my-events");
+        const found = res.data as Event;
+        const userId = localStorage.getItem("userId");
+        if (found.organizerId !== userId) {
+          alert("You can only edit events you created.");
+          navigate("/events");
           return;
         }
         setEvent(found);

@@ -27,7 +27,34 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/my", authMiddleware, async (req: any, res) => {
+  console.log('GET /events/my user', req.user);
+  if (req.user.role !== "organizer") {
+    return res.status(403).send("Forbidden");
+  }
+  try {
+    const myEvents = await prisma.event.findMany({ where: { organizerId: req.user.id } });
+    console.log('myEvents count', myEvents.length);
+    res.json(myEvents);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const event = await prisma.event.findUnique({ where: { id: req.params.id } });
+    if (!event) return res.status(404).send("Event not found");
+    res.json(event);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
+
 router.post("/", authMiddleware, async (req: any, res) => {
+  console.log('POST /events user', req.user);
   if (req.user.role !== "organizer") return res.status(403).send("Forbidden");
 
   const { title, location, date, time, price, ticketsLeft, info } = req.body;
@@ -48,6 +75,7 @@ router.post("/", authMiddleware, async (req: any, res) => {
         organizerId: req.user.id,
       },
     });
+    console.log('Created event organizerId', event.organizerId, 'id', event.id);
     res.json(event);
   } catch (error) {
     console.error(error);
@@ -66,19 +94,6 @@ router.post("/:id/buy", authMiddleware, async (req: any, res) => {
       data: { ticketsLeft: event.ticketsLeft - 1 },
     });
     res.json({ message: "Ticket purchased", ticketsLeft: updated.ticketsLeft });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Server error");
-  }
-});
-
-router.get("/my", authMiddleware, async (req: any, res) => {
-  if (req.user.role !== "organizer") {
-    return res.status(403).send("Forbidden");
-  }
-  try {
-    const myEvents = await prisma.event.findMany({ where: { organizerId: req.user.id } });
-    res.json(myEvents);
   } catch (error) {
     console.error(error);
     res.status(500).send("Server error");

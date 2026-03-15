@@ -7,5 +7,6 @@ export type Event = {
   price: number;
   ticketsLeft: number;
   info: string;
+  organizerId: string;
 };
 

@@ -15,7 +15,15 @@ export default function CreateEvent() {
   const handleCreate = async () => {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
-    if (role !== "organizer") return alert("Only organizers can create events");
+    if (!token) {
+      alert("Please login first to create events.");
+      navigate("/login");
+      return;
+    }
+    if (role !== "organizer") {
+      alert("Only organizers can create events");
+      return;
+    }
 
     try {
       await axios.post(

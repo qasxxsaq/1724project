@@ -36,7 +36,7 @@ router.post("/login", async (req, res) => {
     if (!match) return res.status(400).send("Invalid credentials");
 
     const token = jwt.sign({ id: user.id, role: user.role }, SECRET);
-    res.json({ token, role: user.role });
+    res.json({ token, role: user.role, userId: user.id });
   } catch (error) {
     console.error(error);
     res.status(500).send("Server error");
