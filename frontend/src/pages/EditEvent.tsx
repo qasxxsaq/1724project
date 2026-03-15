@@ -14,6 +14,7 @@ export default function EditEvent() {
   const [price, setPrice] = useState(0);
   const [ticketsLeft, setTicketsLeft] = useState(0);
   const [info, setInfo] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -23,7 +24,7 @@ export default function EditEvent() {
         const found = res.data as Event;
         const userId = localStorage.getItem("userId");
         if (found.organizerId !== userId) {
-          alert("You can only edit events you created.");
+          setError("You can only edit events you created.");
           navigate("/events");
           return;
         }
@@ -44,9 +45,28 @@ export default function EditEvent() {
 
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
+    setError("");
     if (!token) {
-      alert("Please login first");
+      setError("Please login first.");
       navigate("/login");
+      return;
+    }
+
+    if (!title || !location || !date || !time) {
+      setError("Please fill title, location, date, and time.");
+      return;
+    }
+    const selectedDateTime = new Date(`${date}T${time}`);
+    if (Number.isNaN(selectedDateTime.getTime()) || selectedDateTime <= new Date()) {
+      setError("Date and time must be in the future.");
+      return;
+    }
+    if (price < 0) {
+      setError("Price cannot be negative.");
+      return;
+    }
+    if (ticketsLeft < 0) {
+      setError("Tickets left cannot be negative.");
       return;
     }
 
@@ -65,10 +85,9 @@ export default function EditEvent() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       window.dispatchEvent(new Event("eventsUpdated"));
-      alert("Event updated successfully");
       navigate("/my-events");
     } catch (err: any) {
-      alert(err.response?.data || "Failed to update event");
+      setError(err.response?.data || "Failed to update event");
     }
   };
 
@@ -79,20 +98,35 @@ export default function EditEvent() {
   return (
     <div>
       <h2>Edit Event</h2>
+      <label>Title</label>
+      <br />
       <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+      <br />
+      <label>Location</label>
       <br />
       <input placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} />
       <br />
+      <label>Date</label>
+      <br />
       <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+      <br />
+      <label>Time</label>
       <br />
       <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
       <br />
+      <label>Price</label>
+      <br />
       <input type="number" placeholder="Price" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
+      <br />
+      <label>Tickets left</label>
       <br />
       <input type="number" placeholder="Tickets left" value={ticketsLeft} onChange={(e) => setTicketsLeft(Number(e.target.value))} />
       <br />
+      <label>Info (optional)</label>
+      <br />
       <textarea placeholder="Info" value={info} onChange={(e) => setInfo(e.target.value)} />
       <br />
+      {error && <div style={{ color: "red", margin: "8px 0" }}>{error}</div>}
       <button onClick={handleSubmit}>Save Changes</button>
     </div>
   );

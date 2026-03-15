@@ -58,8 +58,18 @@ router.post("/", authMiddleware, async (req: any, res) => {
   if (req.user.role !== "organizer") return res.status(403).send("Forbidden");
 
   const { title, location, date, time, price, ticketsLeft, info } = req.body;
-  if (!title || !location || !date || !time || price === undefined || ticketsLeft === undefined || !info) {
-    return res.status(400).send("Missing fields");
+  if (!title || !location || !date || !time || price === undefined || ticketsLeft === undefined) {
+    return res.status(400).send("Missing required fields: title/location/date/time/price/ticketsLeft");
+  }
+  if (Number(price) < 0 || Number(ticketsLeft) < 0) {
+    return res.status(400).send("Price and ticketsLeft cannot be negative");
+  }
+  const eventDateTime = new Date(`${date}T${time}`);
+  if (Number.isNaN(eventDateTime.getTime())) {
+    return res.status(400).send("Invalid date/time format");
+  }
+  if (eventDateTime <= new Date()) {
+    return res.status(400).send("Date and time cannot be in the past");
   }
 
   try {
@@ -71,7 +81,7 @@ router.post("/", authMiddleware, async (req: any, res) => {
         time,
         price: Number(price),
         ticketsLeft: Number(ticketsLeft),
-        info,
+        info: info || "",
         organizerId: req.user.id,
       },
     });
@@ -112,6 +122,20 @@ router.put("/:id", authMiddleware, async (req: any, res: any) => {
     if (!exists) return res.status(404).send("Event not found");
 
     const { title, location, date, time, price, ticketsLeft, info } = req.body;
+    if (price !== undefined && Number(price) < 0) return res.status(400).send("Price cannot be negative");
+    if (ticketsLeft !== undefined && Number(ticketsLeft) < 0) return res.status(400).send("ticketsLeft cannot be negative");
+    if ((date !== undefined || time !== undefined) && (date === undefined || time === undefined)) {
+      return res.status(400).send("Both date and time must be present if one is provided");
+    }
+    if (date !== undefined && time !== undefined) {
+      const eventDateTime = new Date(`${date}T${time}`);
+      if (Number.isNaN(eventDateTime.getTime())) {
+        return res.status(400).send("Invalid date/time format");
+      }
+      if (eventDateTime <= new Date()) {
+        return res.status(400).send("Date and time cannot be in the past");
+      }
+    }
     const updated = await prisma.event.update({
       where: { id: req.params.id },
       data: {

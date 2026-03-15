@@ -71,7 +71,11 @@ export default function MyEvents() {
             <p>Tickets left: {e.ticketsLeft}</p>
             <p>Description: {e.info}</p>
             <button onClick={() => navigate(`/my-events/edit/${e.id}`)}>Edit</button>
-            <button onClick={() => handleDelete(e.id)}>Delete</button>
+            <button onClick={() => {
+              if (window.confirm("Confirm delete this event?")) {
+                handleDelete(e.id);
+              }
+            }}>Delete</button>
           </div>
         ))
       )}
