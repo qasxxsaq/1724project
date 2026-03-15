@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Event } from "../types";
+import type { Event } from "../types";
 
 export default function EventList() {
   const [events, setEvents] = useState<Event[]>([]);

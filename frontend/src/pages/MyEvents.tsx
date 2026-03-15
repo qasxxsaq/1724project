@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Event } from "../types";
+import type { Event } from "../types";
 
 export default function MyEvents() {
   const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const loadEvents = useCallback(() => {
     const token = localStorage.getItem("token");
-
+    setLoading(true);
     axios
       .get("http://localhost:4000/events/my", {
         headers: {
@@ -18,9 +19,26 @@ export default function MyEvents() {
       })
       .then((res) => setEvents(res.data))
       .catch((err) => {
+        console.error(err);
         alert(err.response?.data || "Failed to load my events");
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    loadEvents();
+
+    const handler = () => {
+      loadEvents();
+    };
+    window.addEventListener("eventsUpdated", handler);
+
+    const interval = setInterval(loadEvents, 6000);
+    return () => {
+      window.removeEventListener("eventsUpdated", handler);
+      clearInterval(interval);
+    };
+  }, [loadEvents]);
 
   const handleDelete = async (id: string) => {
     const token = localStorage.getItem("token");
@@ -31,8 +49,7 @@ export default function MyEvents() {
           Authorization: `Bearer ${token}`
         }
       });
-
-      setEvents(events.filter((e) => e.id !== id));
+      window.dispatchEvent(new Event("eventsUpdated"));
     } catch (err: any) {
       alert(err.response?.data || "Failed to delete event");
     }
@@ -41,7 +58,7 @@ export default function MyEvents() {
   return (
     <div>
       <h2>My Events</h2>
-
+      {loading && <p>Updating dashboard…</p>}
       {events.length === 0 ? (
         <p>You have not created any events yet.</p>
       ) : (
@@ -53,7 +70,6 @@ export default function MyEvents() {
             <p>Price: ${e.price}</p>
             <p>Tickets left: {e.ticketsLeft}</p>
             <p>Description: {e.info}</p>
-
             <button onClick={() => navigate(`/my-events/edit/${e.id}`)}>Edit</button>
             <button onClick={() => handleDelete(e.id)}>Delete</button>
           </div>

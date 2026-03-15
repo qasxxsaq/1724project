@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { Event } from "../types";
+import type { Event } from "../types";
 
 export default function EditEvent() {
   const { id } = useParams<{ id: string }>();
@@ -63,6 +63,7 @@ export default function EditEvent() {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      window.dispatchEvent(new Event("eventsUpdated"));
       alert("Event updated successfully");
       navigate("/my-events");
     } catch (err: any) {

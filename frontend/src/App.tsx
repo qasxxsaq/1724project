@@ -8,7 +8,7 @@ import EditEvent from "./pages/EditEvent";
 import Navbar from "./components/Navbar";
 import MyEvents from "./pages/MyEvents";
 
-function App() {
+export default function App() {
   return (
     <BrowserRouter>
       <Navbar />
@@ -24,5 +24,3 @@ function App() {
     </BrowserRouter>
   );
 }
-
-export default App;

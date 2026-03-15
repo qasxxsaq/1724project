@@ -1,10 +1,9 @@
 import express from "express";
-import { Event } from "../types";
 import jwt from "jsonwebtoken";
+import { prisma } from "../prisma";
 
 const router = express.Router();
 const SECRET = "secret_key"; // same as auth
-const events: Event[] = [];
 
 const authMiddleware = (req: any, res: any, next: any) => {
   const authHeader = req.headers.authorization;
@@ -18,82 +17,120 @@ const authMiddleware = (req: any, res: any, next: any) => {
   }
 };
 
-router.get("/", (req, res) => {
-  res.json(events);
+router.get("/", async (req, res) => {
+  try {
+    const events = await prisma.event.findMany();
+    res.json(events);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
 });
 
-router.post("/", authMiddleware, (req: any, res) => {
+router.post("/", authMiddleware, async (req: any, res) => {
   if (req.user.role !== "organizer") return res.status(403).send("Forbidden");
-  const { title, location, date, time, price, ticketsLeft, info } = req.body;
-  const event: Event = {
-    id: Date.now().toString(),
-    title,
-    location,
-    date,
-    time,
-    price,
-    ticketsLeft,
-    info,
-    organizerId: req.user.id
-  };
-  events.push(event);
-  res.json(event);
-});
-
-router.post("/:id/buy", authMiddleware, (req: any, res) => {
-  const event = events.find(e => e.id === req.params.id);
-  if (!event) return res.status(404).send("Event not found");
-  if (event.ticketsLeft <= 0) return res.status(400).send("Sold out");
-  event.ticketsLeft -= 1;
-  res.json({ message: "Ticket purchased", ticketsLeft: event.ticketsLeft });
-});
-
-// Organizer: show all my events
-router.get("/my", authMiddleware, (req: any, res) => {
-  if (req.user.role !== "organizer") {
-    return res.status(403).send("Forbidden");
-  }
-  const myEvents = events.filter(e => e.organizerId === req.user.id);
-  res.json(myEvents);
-});
-
-// Organizer: edit event
-router.put("/:id", authMiddleware, (req: any, res: any) => {
-  if (req.user.role !== "organizer") {
-    return res.status(403).send("Forbidden");
-  }
-  const event = events.find(
-    (e) => e.id === req.params.id && e.organizerId === req.user.id
-  );
-  if (!event) {
-    return res.status(404).send("Event not found");
-  }
 
   const { title, location, date, time, price, ticketsLeft, info } = req.body;
-  if (title !== undefined) event.title = title;
-  if (location !== undefined) event.location = location;
-  if (date !== undefined) event.date = date;
-  if (time !== undefined) event.time = time;
-  if (price !== undefined) event.price = Number(price);
-  if (ticketsLeft !== undefined) event.ticketsLeft = Number(ticketsLeft);
-  if (info !== undefined) event.info = info;
+  if (!title || !location || !date || !time || price === undefined || ticketsLeft === undefined || !info) {
+    return res.status(400).send("Missing fields");
+  }
 
-  res.json(event);
+  try {
+    const event = await prisma.event.create({
+      data: {
+        title,
+        location,
+        date,
+        time,
+        price: Number(price),
+        ticketsLeft: Number(ticketsLeft),
+        info,
+        organizerId: req.user.id,
+      },
+    });
+    res.json(event);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
 });
 
-// Organizer:delete certain event
-router.delete("/:id", authMiddleware, (req: any, res) => {
+router.post("/:id/buy", authMiddleware, async (req: any, res) => {
+  try {
+    const event = await prisma.event.findUnique({ where: { id: req.params.id } });
+    if (!event) return res.status(404).send("Event not found");
+    if (event.ticketsLeft <= 0) return res.status(400).send("Sold out");
+
+    const updated = await prisma.event.update({
+      where: { id: req.params.id },
+      data: { ticketsLeft: event.ticketsLeft - 1 },
+    });
+    res.json({ message: "Ticket purchased", ticketsLeft: updated.ticketsLeft });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
+
+router.get("/my", authMiddleware, async (req: any, res) => {
   if (req.user.role !== "organizer") {
     return res.status(403).send("Forbidden");
   }
-  const index = events.findIndex(
-    (e) => e.id === req.params.id && e.organizerId === req.user.id
-  );
-  if (index === -1) {
-    return res.status(404).send("Event not found");
+  try {
+    const myEvents = await prisma.event.findMany({ where: { organizerId: req.user.id } });
+    res.json(myEvents);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
   }
-  events.splice(index, 1);
-  res.json({ message: "Event deleted" });
+});
+
+router.put("/:id", authMiddleware, async (req: any, res: any) => {
+  if (req.user.role !== "organizer") {
+    return res.status(403).send("Forbidden");
+  }
+
+  try {
+    const exists = await prisma.event.findFirst({
+      where: { id: req.params.id, organizerId: req.user.id },
+    });
+    if (!exists) return res.status(404).send("Event not found");
+
+    const { title, location, date, time, price, ticketsLeft, info } = req.body;
+    const updated = await prisma.event.update({
+      where: { id: req.params.id },
+      data: {
+        title: title !== undefined ? title : exists.title,
+        location: location !== undefined ? location : exists.location,
+        date: date !== undefined ? date : exists.date,
+        time: time !== undefined ? time : exists.time,
+        price: price !== undefined ? Number(price) : exists.price,
+        ticketsLeft: ticketsLeft !== undefined ? Number(ticketsLeft) : exists.ticketsLeft,
+        info: info !== undefined ? info : exists.info,
+      },
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
+
+router.delete("/:id", authMiddleware, async (req: any, res) => {
+  if (req.user.role !== "organizer") {
+    return res.status(403).send("Forbidden");
+  }
+
+  try {
+    const event = await prisma.event.findFirst({ where: { id: req.params.id, organizerId: req.user.id } });
+    if (!event) return res.status(404).send("Event not found");
+
+    await prisma.event.delete({ where: { id: req.params.id } });
+    res.json({ message: "Event deleted" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
 });
 
 export default router;
