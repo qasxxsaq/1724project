@@ -1,27 +1,11 @@
 import "dotenv/config";
 import crypto from "crypto";
 import express from "express";
-import jwt from "jsonwebtoken";
+import type { Request, Response } from "express";
 import { prisma } from "../prisma";
+import { authMiddleware } from "../middleware/auth";
 
 const router = express.Router();
-const SECRET = process.env.JWT_SECRET;
-
-if (!SECRET) {
-  throw new Error("JWT_SECRET is not set");
-}
-
-const authMiddleware = (req: any, res: any, next: any) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).send("No token");
-  const token = authHeader.split(" ")[1];
-  try {
-    req.user = jwt.verify(token, SECRET);
-    next();
-  } catch {
-    res.status(401).send("Invalid token");
-  }
-};
 
 router.get("/", async (req, res) => {
   try {
@@ -33,13 +17,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/my", authMiddleware, async (req: any, res) => {
-  console.log('GET /events/my user', req.user);
-  if (req.user.role !== "organizer") {
+router.get("/my", authMiddleware, async (req: Request, res: Response) => {
+  const user = req.user;
+  if (!user) return res.status(401).send("Invalid token");
+  console.log('GET /events/my user', user);
+  if (user.role !== "organizer") {
     return res.status(403).send("Forbidden");
   }
   try {
-    const myEvents = await prisma.event.findMany({ where: { organizerId: req.user.id } });
+    const myEvents = await prisma.event.findMany({ where: { organizerId: user.id } });
     console.log('myEvents count', myEvents.length);
     res.json(myEvents);
   } catch (error) {
@@ -59,9 +45,11 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", authMiddleware, async (req: any, res) => {
-  console.log('POST /events user', req.user);
-  if (req.user.role !== "organizer") return res.status(403).send("Forbidden");
+router.post("/", authMiddleware, async (req: Request, res: Response) => {
+  const user = req.user;
+  if (!user) return res.status(401).send("Invalid token");
+  console.log('POST /events user', user);
+  if (user.role !== "organizer") return res.status(403).send("Forbidden");
 
   const { title, location, date, time, price, ticketsLeft, info, studentDiscount } = req.body;
   if (!title || !location || !date || !time || price === undefined || ticketsLeft === undefined) {
@@ -89,7 +77,7 @@ router.post("/", authMiddleware, async (req: any, res) => {
         ticketsLeft: Number(ticketsLeft),
         info: info || "",
         studentDiscount: studentDiscount || false,
-        organizerId: req.user.id,
+        organizerId: user.id,
       },
     });
     console.log('Created event organizerId', event.organizerId, 'id', event.id);
@@ -100,8 +88,10 @@ router.post("/", authMiddleware, async (req: any, res) => {
   }
 });
 
-router.post("/:id/buy", authMiddleware, async (req: any, res) => {
-  if (req.user.role !== "customer") return res.status(403).send("Forbidden");
+router.post("/:id/buy", authMiddleware, async (req: Request, res: Response) => {
+  const user = req.user;
+  if (!user) return res.status(401).send("Invalid token");
+  if (user.role !== "customer") return res.status(403).send("Forbidden");
 
   try {
     const event = await prisma.event.findUnique({ where: { id: req.params.id } });
@@ -111,7 +101,7 @@ router.post("/:id/buy", authMiddleware, async (req: any, res) => {
     let finalPrice = event.price;
     if (event.studentDiscount) {
       const studentDoc = await prisma.document.findFirst({
-        where: { userId: req.user.id, type: "student_id" },
+        where: { userId: user.id, type: "student_id" },
       });
       if (studentDoc) {
         finalPrice = Math.floor(event.price * 0.8); // 20% discount
@@ -138,7 +128,7 @@ router.post("/:id/buy", authMiddleware, async (req: any, res) => {
       data: {
         code,
         eventId: req.params.id,
-        userId: req.user.id,
+        userId: user.id,
       },
       include: { event: true },
     });
@@ -150,14 +140,16 @@ router.post("/:id/buy", authMiddleware, async (req: any, res) => {
   }
 });
 
-router.put("/:id", authMiddleware, async (req: any, res: any) => {
-  if (req.user.role !== "organizer") {
+router.put("/:id", authMiddleware, async (req: Request, res: Response) => {
+  const user = req.user;
+  if (!user) return res.status(401).send("Invalid token");
+  if (user.role !== "organizer") {
     return res.status(403).send("Forbidden");
   }
 
   try {
     const exists = await prisma.event.findFirst({
-      where: { id: req.params.id, organizerId: req.user.id },
+      where: { id: req.params.id, organizerId: user.id },
     });
     if (!exists) return res.status(404).send("Event not found");
 
@@ -196,13 +188,15 @@ router.put("/:id", authMiddleware, async (req: any, res: any) => {
   }
 });
 
-router.delete("/:id", authMiddleware, async (req: any, res) => {
-  if (req.user.role !== "organizer") {
+router.delete("/:id", authMiddleware, async (req: Request, res: Response) => {
+  const user = req.user;
+  if (!user) return res.status(401).send("Invalid token");
+  if (user.role !== "organizer") {
     return res.status(403).send("Forbidden");
   }
 
   try {
-    const event = await prisma.event.findFirst({ where: { id: req.params.id, organizerId: req.user.id } });
+    const event = await prisma.event.findFirst({ where: { id: req.params.id, organizerId: user.id } });
     if (!event) return res.status(404).send("Event not found");
 
     await prisma.event.delete({ where: { id: req.params.id } });
