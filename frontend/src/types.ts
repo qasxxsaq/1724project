@@ -10,3 +10,12 @@ export type Event = {
   organizerId: string;
 };
 
+export type Ticket = {
+  id: string;
+  code: string;
+  eventId: string;
+  userId: string;
+  createdAt: string;
+  event?: Event;
+};
+

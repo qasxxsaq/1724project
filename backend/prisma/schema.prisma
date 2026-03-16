@@ -18,6 +18,7 @@ model User {
   password String
   role     String
   events   Event[]
+  tickets  Ticket[]
 }
 
 model Event {
@@ -31,4 +32,16 @@ model Event {
   info        String
   organizerId String
   organizer   User   @relation(fields: [organizerId], references: [id])
+  tickets     Ticket[]
+}
+
+model Ticket {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  eventId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
 }

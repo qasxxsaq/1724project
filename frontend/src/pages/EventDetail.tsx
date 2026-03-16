@@ -29,9 +29,9 @@ export default function EventDetail() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert(res.data.message);
-      navigate("/events");
+      navigate("/tickets");
     } catch (err: any) {
-      alert(err.response?.data || "购买失败");
+      alert(err.response?.data || "Purchase failed.");
     }
   };
 

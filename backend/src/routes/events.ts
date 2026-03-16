@@ -1,4 +1,5 @@
 import "dotenv/config";
+import crypto from "crypto";
 import express from "express";
 import jwt from "jsonwebtoken";
 import { prisma } from "../prisma";
@@ -99,6 +100,8 @@ router.post("/", authMiddleware, async (req: any, res) => {
 });
 
 router.post("/:id/buy", authMiddleware, async (req: any, res) => {
+  if (req.user.role !== "customer") return res.status(403).send("Forbidden");
+
   try {
     const updateResult = await prisma.event.updateMany({
       where: {
@@ -116,10 +119,17 @@ router.post("/:id/buy", authMiddleware, async (req: any, res) => {
       return res.status(400).send("Sold out");
     }
 
-    const updated = await prisma.event.findUnique({ where: { id: req.params.id } });
-    if (!updated) return res.status(404).send("Event not found");
+    const code = crypto.randomBytes(16).toString("hex");
+    const ticket = await prisma.ticket.create({
+      data: {
+        code,
+        eventId: req.params.id,
+        userId: req.user.id,
+      },
+      include: { event: true },
+    });
 
-    res.json({ message: "Ticket purchased", ticketsLeft: updated.ticketsLeft });
+    res.json({ message: "Ticket purchased", ticket });
   } catch (error) {
     console.error(error);
     res.status(500).send("Server error");
