@@ -28,7 +28,12 @@ export default function EventDetail() {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert(res.data.message);
+      const { message, discountApplied, finalPrice } = res.data;
+      if (discountApplied) {
+        alert(`${message} - Student discount applied! Final price: $${finalPrice}`);
+      } else {
+        alert(message);
+      }
       navigate("/tickets");
     } catch (err: any) {
       alert(err.response?.data || "Purchase failed.");
@@ -49,6 +54,7 @@ export default function EventDetail() {
       <p><strong>Date:</strong> {event.date}</p>
       <p><strong>Time:</strong> {event.time}</p>
       <p><strong>Price:</strong> ${event.price}</p>
+      {event.studentDiscount && <p><strong>Student Discount:</strong> 20% off with valid student ID</p>}
       <p><strong>Tickets left:</strong> {event.ticketsLeft}</p>
       <p><strong>Description:</strong> {event.info}</p>
       <div style={{ marginTop: "8px" }}>

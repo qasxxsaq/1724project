@@ -19,6 +19,7 @@ model User {
   role     String
   events   Event[]
   tickets  Ticket[]
+  documents Document[]
 }
 
 model Event {
@@ -31,6 +32,7 @@ model Event {
   ticketsLeft Int
   info        String
   organizerId String
+  studentDiscount Boolean @default(false)
   organizer   User   @relation(fields: [organizerId], references: [id])
   tickets     Ticket[]
 }
@@ -44,4 +46,18 @@ model Ticket {
 
   event Event @relation(fields: [eventId], references: [id])
   user  User  @relation(fields: [userId], references: [id])
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  filename     String
+  originalName String
+  mimetype     String
+  size         Int
+  path         String
+  type         String
+  userId       String
+  uploadedAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }

@@ -25,7 +25,8 @@ export default function Navbar() {
 
       {token && role === "customer" && (
         <>
-          <Link to="/tickets">My Tickets</Link> | {" "}
+          <Link to="/tickets">My Tickets</Link> |{" "}
+          <Link to="/documents">My Documents</Link> |{" "}
           <button onClick={handleLogout}>Logout</button>
         </>
       )}

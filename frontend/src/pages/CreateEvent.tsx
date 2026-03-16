@@ -10,6 +10,7 @@ export default function CreateEvent() {
   const [price, setPrice] = useState(0);
   const [ticketsLeft, setTicketsLeft] = useState(0);
   const [info, setInfo] = useState("");
+  const [studentDiscount, setStudentDiscount] = useState(false);
   const [error, setError] = useState("");
   const [fieldError, setFieldError] = useState({ title: "", location: "", date: "", time: "", price: "", ticketsLeft: "" });
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ export default function CreateEvent() {
     try {
       await axios.post(
         "http://localhost:4000/events",
-        { title, location, date, time, price, ticketsLeft, info },
+        { title, location, date, time, price, ticketsLeft, info, studentDiscount },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       navigate("/events");
@@ -106,6 +107,11 @@ export default function CreateEvent() {
       <label>Info (optional)</label>
       <br />
       <textarea placeholder="Info" value={info} onChange={e => setInfo(e.target.value)} />
+      <br />
+      <label>
+        <input type="checkbox" checked={studentDiscount} onChange={e => setStudentDiscount(e.target.checked)} />
+        Student Discount Available
+      </label>
       <br />
       {error && <div style={{ color: "red", margin: "8px 0" }}>{error}</div>}
       <button onClick={handleCreate}>Create Event</button>

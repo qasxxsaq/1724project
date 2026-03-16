@@ -63,7 +63,7 @@ router.post("/", authMiddleware, async (req: any, res) => {
   console.log('POST /events user', req.user);
   if (req.user.role !== "organizer") return res.status(403).send("Forbidden");
 
-  const { title, location, date, time, price, ticketsLeft, info } = req.body;
+  const { title, location, date, time, price, ticketsLeft, info, studentDiscount } = req.body;
   if (!title || !location || !date || !time || price === undefined || ticketsLeft === undefined) {
     return res.status(400).send("Missing required fields: title/location/date/time/price/ticketsLeft");
   }
@@ -88,6 +88,7 @@ router.post("/", authMiddleware, async (req: any, res) => {
         price: Number(price),
         ticketsLeft: Number(ticketsLeft),
         info: info || "",
+        studentDiscount: studentDiscount || false,
         organizerId: req.user.id,
       },
     });
@@ -103,6 +104,21 @@ router.post("/:id/buy", authMiddleware, async (req: any, res) => {
   if (req.user.role !== "customer") return res.status(403).send("Forbidden");
 
   try {
+    const event = await prisma.event.findUnique({ where: { id: req.params.id } });
+    if (!event) return res.status(404).send("Event not found");
+
+    let discountApplied = false;
+    let finalPrice = event.price;
+    if (event.studentDiscount) {
+      const studentDoc = await prisma.document.findFirst({
+        where: { userId: req.user.id, type: "student_id" },
+      });
+      if (studentDoc) {
+        finalPrice = Math.floor(event.price * 0.8); // 20% discount
+        discountApplied = true;
+      }
+    }
+
     const updateResult = await prisma.event.updateMany({
       where: {
         id: req.params.id,
@@ -114,8 +130,6 @@ router.post("/:id/buy", authMiddleware, async (req: any, res) => {
     });
 
     if (updateResult.count === 0) {
-      const event = await prisma.event.findUnique({ where: { id: req.params.id } });
-      if (!event) return res.status(404).send("Event not found");
       return res.status(400).send("Sold out");
     }
 
@@ -129,7 +143,7 @@ router.post("/:id/buy", authMiddleware, async (req: any, res) => {
       include: { event: true },
     });
 
-    res.json({ message: "Ticket purchased", ticket });
+    res.json({ message: "Ticket purchased", ticket, discountApplied, finalPrice });
   } catch (error) {
     console.error(error);
     res.status(500).send("Server error");
@@ -147,7 +161,7 @@ router.put("/:id", authMiddleware, async (req: any, res: any) => {
     });
     if (!exists) return res.status(404).send("Event not found");
 
-    const { title, location, date, time, price, ticketsLeft, info } = req.body;
+    const { title, location, date, time, price, ticketsLeft, info, studentDiscount } = req.body;
     if (price !== undefined && Number(price) < 0) return res.status(400).send("Price cannot be negative");
     if (ticketsLeft !== undefined && Number(ticketsLeft) < 0) return res.status(400).send("ticketsLeft cannot be negative");
     if ((date !== undefined || time !== undefined) && (date === undefined || time === undefined)) {
@@ -172,6 +186,7 @@ router.put("/:id", authMiddleware, async (req: any, res: any) => {
         price: price !== undefined ? Number(price) : exists.price,
         ticketsLeft: ticketsLeft !== undefined ? Number(ticketsLeft) : exists.ticketsLeft,
         info: info !== undefined ? info : exists.info,
+        studentDiscount: studentDiscount !== undefined ? studentDiscount : exists.studentDiscount,
       },
     });
     res.json(updated);

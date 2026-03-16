@@ -14,6 +14,7 @@ export default function EditEvent() {
   const [price, setPrice] = useState(0);
   const [ticketsLeft, setTicketsLeft] = useState(0);
   const [info, setInfo] = useState("");
+  const [studentDiscount, setStudentDiscount] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function EditEvent() {
         setPrice(found.price);
         setTicketsLeft(found.ticketsLeft);
         setInfo(found.info);
+        setStudentDiscount(found.studentDiscount);
       })
       .catch((err) => {
         alert(err.response?.data || "Failed to load event");
@@ -81,6 +83,7 @@ export default function EditEvent() {
           price,
           ticketsLeft,
           info,
+          studentDiscount,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -125,6 +128,11 @@ export default function EditEvent() {
       <label>Info (optional)</label>
       <br />
       <textarea placeholder="Info" value={info} onChange={(e) => setInfo(e.target.value)} />
+      <br />
+      <label>
+        <input type="checkbox" checked={studentDiscount} onChange={(e) => setStudentDiscount(e.target.checked)} />
+        Student Discount Available
+      </label>
       <br />
       {error && <div style={{ color: "red", margin: "8px 0" }}>{error}</div>}
       <button onClick={handleSubmit}>Save Changes</button>

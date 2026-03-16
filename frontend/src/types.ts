@@ -8,6 +8,7 @@ export type Event = {
   ticketsLeft: number;
   info: string;
   organizerId: string;
+  studentDiscount: boolean;
 };
 
 export type Ticket = {
@@ -17,5 +18,17 @@ export type Ticket = {
   userId: string;
   createdAt: string;
   event?: Event;
+};
+
+export type Document = {
+  id: string;
+  filename: string;
+  originalName: string;
+  mimetype: string;
+  size: number;
+  path: string;
+  type: string;
+  userId: string;
+  uploadedAt: string;
 };
 
