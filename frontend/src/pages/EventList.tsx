@@ -5,6 +5,8 @@ import type { Event } from "../types";
 
 export default function EventList() {
   const [events, setEvents] = useState<Event[]>([]);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all" | "available" | "soldout" | "discount">("all");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,22 +22,69 @@ export default function EventList() {
       })
       .catch(err => alert(err.response?.data || "Purchase failed."));
   };
+
   const role = localStorage.getItem("role");
+  const normalizedSearch = search.trim().toLowerCase();
+
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      normalizedSearch.length === 0 ||
+      event.title.toLowerCase().includes(normalizedSearch) ||
+      event.location.toLowerCase().includes(normalizedSearch) ||
+      event.info.toLowerCase().includes(normalizedSearch);
+
+    if (!matchesSearch) return false;
+
+    if (filter === "available") return event.ticketsLeft > 0;
+    if (filter === "soldout") return event.ticketsLeft <= 0;
+    if (filter === "discount") return event.studentDiscount;
+    return true;
+  });
 
   return (
     <div>
       <h2>Events</h2>
-      {events.length === 0 && <p>No events yet.</p>}
-      {events.map(e => (
+      <div className="filters">
+        <input
+          className="search"
+          placeholder="Search by title, location, or description"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ minWidth: "260px" }}
+        />
+        <select
+          value={filter}
+          onChange={e => setFilter(e.target.value as "all" | "available" | "soldout" | "discount")}
+        >
+          <option value="all">All events</option>
+          <option value="available">Available</option>
+          <option value="soldout">Sold out</option>
+          <option value="discount">Student discount</option>
+        </select>
+      </div>
+      {filteredEvents.length === 0 && <p>{events.length === 0 ? "No events yet." : "No matching events found."}</p>}
+      {filteredEvents.map(e => (
         <div key={e.id} style={{ border: "1px solid black", margin: "10px", padding: "10px" }}>
           <h3>{e.title}</h3>
           <p>{e.location} | {e.date} {e.time}</p>
           <p>${e.price} | Tickets left: {e.ticketsLeft}</p>
+          <div className="badges">
+            <span className={`badge ${e.ticketsLeft <= 0 ? "status_soldout" : "status_available"}`}>
+              {e.ticketsLeft <= 0 ? "Sold out" : "Available"}
+            </span>
+            {e.ticketsLeft > 0 && e.ticketsLeft <= 3 && (
+              <span className="badge status_low_availability">
+                Low availability
+              </span>
+            )}
+          </div>
           <p>{e.info}</p>
           <div style={{ marginTop: "8px" }}>
             <Link to={`/events/${e.id}`} style={{ marginRight: "8px" }}>View Details</Link>
             {role === "customer" && (
-              <button onClick={() => buyTicket(e.id)}>Buy Ticket</button>
+              <button onClick={() => buyTicket(e.id)} disabled={e.ticketsLeft <= 0}>
+                {e.ticketsLeft <= 0 ? "Sold Out" : "Buy Ticket"}
+              </button>
             )}
           </div>
         </div>
@@ -43,4 +92,3 @@ export default function EventList() {
     </div>
   );
 }
-

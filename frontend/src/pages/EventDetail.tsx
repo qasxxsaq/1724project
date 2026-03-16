@@ -56,11 +56,16 @@ export default function EventDetail() {
       <p><strong>Price:</strong> ${event.price}</p>
       {event.studentDiscount && <p><strong>Student Discount:</strong> 20% off with valid student ID</p>}
       <p><strong>Tickets left:</strong> {event.ticketsLeft}</p>
+      {event.ticketsLeft <= 0 && (
+        <div style={{ margin: "8px 0" }}>
+          <span className="badge status_soldout">Sold out</span>
+        </div>
+      )}
       <p><strong>Description:</strong> {event.info}</p>
       <div style={{ marginTop: "8px" }}>
         {role === "customer" && (
-          <button onClick={buy} style={{ marginRight: "8px" }}>
-            Buy Ticket
+          <button onClick={buy} style={{ marginRight: "8px" }} disabled={event.ticketsLeft <= 0}>
+            {event.ticketsLeft <= 0 ? "Sold Out" : "Buy Ticket"}
           </button>
         )}
         {canEdit && (

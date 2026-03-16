@@ -1,0 +1,37 @@
+.filters {
+  margin-bottom: 12px;
+}
+
+.search {
+  margin-right: 8px;
+  min-width: 220px;
+}
+
+.badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.status_available {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status_soldout {
+  background: #ffe5e5;
+  color: #c62828;
+}
+
+.status_low_availability {
+  background: #fff4d6;
+  color: #b26a00;
+}
