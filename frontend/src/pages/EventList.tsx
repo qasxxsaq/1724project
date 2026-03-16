@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import type { Event } from "../types";
 
 export default function EventList() {
   const [events, setEvents] = useState<Event[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios.get("http://localhost:4000/events").then(res => setEvents(res.data));
@@ -13,8 +14,11 @@ export default function EventList() {
   const buyTicket = (id: string) => {
     const token = localStorage.getItem("token");
     axios.post(`http://localhost:4000/events/${id}/buy`, {}, { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => alert(res.data.message))
-      .catch(err => alert(err.response?.data || "无法购买"));
+      .then(res => {
+        alert(res.data.message);
+        navigate("/tickets");
+      })
+      .catch(err => alert(err.response?.data || "Purchase failed."));
   };
   const role = localStorage.getItem("role");
 
