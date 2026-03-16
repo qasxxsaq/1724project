@@ -1,10 +1,15 @@
+import "dotenv/config";
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "../prisma";
 
 const router = express.Router();
-const SECRET = "secret_key"; // demo only
+const SECRET = process.env.JWT_SECRET;
+
+if (!SECRET) {
+  throw new Error("JWT_SECRET is not set");
+}
 
 router.post("/register", async (req, res) => {
   try {
@@ -35,7 +40,7 @@ router.post("/login", async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).send("Invalid credentials");
 
-    const token = jwt.sign({ id: user.id, role: user.role }, SECRET);
+    const token = jwt.sign({ id: user.id, role: user.role }, SECRET, { expiresIn: "7d" });
     res.json({ token, role: user.role, userId: user.id });
   } catch (error) {
     console.error(error);

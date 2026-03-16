@@ -1,9 +1,14 @@
+import "dotenv/config";
 import express from "express";
 import jwt from "jsonwebtoken";
 import { prisma } from "../prisma";
 
 const router = express.Router();
-const SECRET = "secret_key"; // same as auth
+const SECRET = process.env.JWT_SECRET;
+
+if (!SECRET) {
+  throw new Error("JWT_SECRET is not set");
+}
 
 const authMiddleware = (req: any, res: any, next: any) => {
   const authHeader = req.headers.authorization;
@@ -95,14 +100,25 @@ router.post("/", authMiddleware, async (req: any, res) => {
 
 router.post("/:id/buy", authMiddleware, async (req: any, res) => {
   try {
-    const event = await prisma.event.findUnique({ where: { id: req.params.id } });
-    if (!event) return res.status(404).send("Event not found");
-    if (event.ticketsLeft <= 0) return res.status(400).send("Sold out");
-
-    const updated = await prisma.event.update({
-      where: { id: req.params.id },
-      data: { ticketsLeft: event.ticketsLeft - 1 },
+    const updateResult = await prisma.event.updateMany({
+      where: {
+        id: req.params.id,
+        ticketsLeft: { gt: 0 },
+      },
+      data: {
+        ticketsLeft: { decrement: 1 },
+      },
     });
+
+    if (updateResult.count === 0) {
+      const event = await prisma.event.findUnique({ where: { id: req.params.id } });
+      if (!event) return res.status(404).send("Event not found");
+      return res.status(400).send("Sold out");
+    }
+
+    const updated = await prisma.event.findUnique({ where: { id: req.params.id } });
+    if (!updated) return res.status(404).send("Event not found");
+
     res.json({ message: "Ticket purchased", ticketsLeft: updated.ticketsLeft });
   } catch (error) {
     console.error(error);
