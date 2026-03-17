@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import type { Event } from "../types";
+import type { Event, TicketSale } from "../types";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -10,6 +10,7 @@ import { Badge } from "../components/ui/badge";
 export default function MyEvents() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
+  const [openSalesEventId, setOpenSalesEventId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "upcoming" | "past" | "soldout" | "discount">("all");
   const [sort, setSort] = useState<"soonest" | "latest" | "lowTickets" | "highRevenue">("soonest");
@@ -67,6 +68,37 @@ export default function MyEvents() {
     }
   };
 
+  const downloadStudentProof = async (sale: TicketSale) => {
+    const token = localStorage.getItem("token");
+    if (!sale.studentDocument) {
+      alert("No student proof uploaded for this purchase");
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:4000/documents/${sale.studentDocument.id}/download`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "blob",
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = sale.studentDocument.originalName || "student-proof";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(err.response?.data || "Failed to download student proof");
+    }
+  };
+
   const normalizedSearch = search.trim().toLowerCase();
   const now = new Date();
 
@@ -85,6 +117,10 @@ export default function MyEvents() {
     setOnlySoonAvailable(false);
   };
 
+  const toggleSalesDetails = (eventId: string) => {
+    setOpenSalesEventId((current) => (current === eventId ? null : eventId));
+  };
+
   const filteredEvents = events
     .filter((event) => {
       const matchesSearch =
@@ -97,11 +133,15 @@ export default function MyEvents() {
 
       const eventDateTime = new Date(`${event.date}T${event.time}`);
       const eventDay = new Date(`${event.date}T00:00:00`);
+      const isUpcoming = !Number.isNaN(eventDateTime.getTime()) && eventDateTime > now;
+      const isPast = !Number.isNaN(eventDateTime.getTime()) && eventDateTime < now;
+      const isSoldOut = event.ticketsLeft <= 0;
+      const hasDiscount = event.studentDiscount;
 
-      if (filter === "upcoming") return !Number.isNaN(eventDateTime.getTime()) && eventDateTime > now;
-      if (filter === "past") return !Number.isNaN(eventDateTime.getTime()) && eventDateTime < now;
-      if (filter === "soldout") return event.ticketsLeft <= 0;
-      if (filter === "discount") return event.studentDiscount;
+      if (filter === "upcoming" && !isUpcoming) return false;
+      if (filter === "past" && !isPast) return false;
+      if (filter === "soldout" && !isSoldOut) return false;
+      if (filter === "discount" && !hasDiscount) return false;
 
       if (startDate) {
         const start = new Date(`${startDate}T00:00:00`);
@@ -113,7 +153,7 @@ export default function MyEvents() {
       }
       if (minPrice && event.price < Number(minPrice)) return false;
       if (maxPrice && event.price > Number(maxPrice)) return false;
-      if (onlySoonAvailable && !(event.ticketsLeft > 0 && !Number.isNaN(eventDateTime.getTime()) && eventDateTime > now)) {
+      if (onlySoonAvailable && !(event.ticketsLeft > 0 && isUpcoming)) {
         return false;
       }
       return true;
@@ -234,6 +274,7 @@ export default function MyEvents() {
             const isSoldOut = e.ticketsLeft <= 0;
             const isLow = e.ticketsLeft > 0 && e.ticketsLeft <= 3;
             const isPast = isPastEvent(e);
+            const isSalesOpen = openSalesEventId === e.id;
 
             return (
               <Card key={e.id} className="space-y-4">
@@ -260,10 +301,19 @@ export default function MyEvents() {
 
                 <div className="grid gap-2">
                   <p className="text-sm text-slate-600">{e.info}</p>
-                  <p className="text-xs text-slate-500">Tickets sold: {e.soldCount ?? 0} • Revenue: ${e.revenue ?? 0}</p>
+                  <p className="text-xs text-slate-500">
+                    Tickets sold: {e.soldCount ?? 0} • Revenue: ${(e.revenue ?? 0).toFixed(2)}
+                  </p>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => toggleSalesDetails(e.id)}
+                  >
+                    {isSalesOpen ? "Hide sales details" : "View sales details"}
+                  </Button>
                   <Button size="sm" onClick={() => navigate(`/my-events/edit/${e.id}`)} disabled={isPast}>
                     Edit
                   </Button>
@@ -279,6 +329,78 @@ export default function MyEvents() {
                     Delete
                   </Button>
                 </div>
+
+                {isSalesOpen ? (
+                  <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">Sales details</p>
+                      <p className="text-xs text-slate-500">
+                        {e.sales?.length ? `${e.sales.length} purchase(s)` : "No tickets sold yet"}
+                      </p>
+                    </div>
+
+                    {e.sales?.length ? (
+                      <div className="grid gap-3">
+                        {e.sales.map((sale) => (
+                          <div
+                            key={sale.id}
+                            className="grid gap-2 rounded-lg border border-slate-200 bg-white p-3"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div>
+                                <p className="text-sm font-medium text-slate-900">{sale.buyerUsername}</p>
+                                <p className="text-xs text-slate-500">
+                                  Purchased {new Date(sale.purchasedAt).toLocaleString()}
+                                </p>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge variant={sale.discountApplied ? "warning" : "secondary"}>
+                                  {sale.discountApplied ? "Student discount used" : "Regular price"}
+                                </Badge>
+                                {sale.discountApplied && sale.discountReviewStatus === "pending" ? (
+                                  <Badge variant="warning">Pending review</Badge>
+                                ) : null}
+                                {sale.discountApplied && sale.discountReviewStatus === "approved" ? (
+                                  <Badge variant="success">Approved</Badge>
+                                ) : null}
+                                <Badge>${sale.purchasePrice.toFixed(2)}</Badge>
+                              </div>
+                            </div>
+
+                          <div className="text-xs text-slate-600">
+                            <p>Ticket ID: {sale.id}</p>
+                            <p>
+                              Code: {sale.code || (sale.discountReviewStatus === "pending" ? "Will be generated after approval" : "Not available")}
+                            </p>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => navigate(`/organizer/tickets/${sale.id}`)}
+                            >
+                              View ticket details
+                            </Button>
+
+                            {sale.studentDocument ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => downloadStudentProof(sale)}
+                              >
+                                Download proof
+                              </Button>
+                            ) : null}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    ) : null}
+                  </div>
+                ) : null}
               </Card>
             );
           })}

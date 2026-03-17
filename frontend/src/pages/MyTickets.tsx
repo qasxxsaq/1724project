@@ -44,6 +44,9 @@ export default function MyTickets() {
     const generate = async () => {
       const entries = await Promise.all(
         tickets.map(async (ticket) => {
+          if (!ticket.code) {
+            return [ticket.id, ""] as const;
+          }
           try {
             const dataUrl = await QRCode.toDataURL(ticket.code);
             return [ticket.id, dataUrl] as const;
@@ -94,6 +97,12 @@ export default function MyTickets() {
                 <Badge variant={ticket.discountApplied ? "success" : "secondary"}>
                   {ticket.discountApplied ? "Student discount" : "No discount"}
                 </Badge>
+                {ticket.discountApplied && ticket.discountReviewStatus === "pending" ? (
+                  <Badge variant="warning">Pending review</Badge>
+                ) : null}
+                {ticket.discountApplied && ticket.discountReviewStatus === "approved" ? (
+                  <Badge variant="success">Discount approved</Badge>
+                ) : null}
               </div>
 
               <div className="grid gap-2">
@@ -101,26 +110,39 @@ export default function MyTickets() {
                   Purchased: {new Date(ticket.createdAt).toLocaleString()}
                 </p>
                 <p className="text-sm text-slate-600">Location: {ticket.event?.location}</p>
+                {ticket.discountApplied && ticket.discountReviewStatus === "pending" ? (
+                  <p className="text-sm text-amber-700">
+                    Your discounted ticket will be generated after organizer approval.
+                  </p>
+                ) : null}
               </div>
 
               <div className="grid gap-2 md:grid-cols-2">
                 <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  {qrData[ticket.id] ? (
+                  {ticket.code && qrData[ticket.id] ? (
                     <img src={qrData[ticket.id]} alt="Ticket QR code" className="h-40 w-40" />
+                  ) : ticket.discountApplied && ticket.discountReviewStatus === "pending" ? (
+                    <p className="text-xs text-amber-700">QR code will appear after approval</p>
                   ) : (
                     <p className="text-xs text-slate-500">QR code is loading</p>
                   )}
                 </div>
 
                 <div className="flex flex-col items-start justify-between gap-3">
-                  <Button
-                    asChild
-                    className="w-full"
-                  >
-                    <a href={qrData[ticket.id]} download={`ticket-${ticket.id}.png`}>
-                      Download ticket
-                    </a>
-                  </Button>
+                  {ticket.code && qrData[ticket.id] ? (
+                    <Button
+                      asChild
+                      className="w-full"
+                    >
+                      <a href={qrData[ticket.id]} download={`ticket-${ticket.id}.png`}>
+                        Download ticket
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button className="w-full" disabled>
+                      Ticket pending approval
+                    </Button>
+                  )}
 
                   <Button
                     variant="secondary"

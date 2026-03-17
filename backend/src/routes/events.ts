@@ -10,12 +10,17 @@ const router = express.Router();
 
 type EventSaleRow = {
   ticketId: string;
-  code: string;
+  code: string | null;
   eventId: string;
+  userId: string;
   createdAt: Date;
   purchasePrice: number;
   discountApplied: boolean;
+  discountReviewStatus: string | null;
   username: string;
+  studentDocumentId: string | null;
+  studentDocumentName: string | null;
+  studentDocumentUploadedAt: Date | null;
 };
 
 router.get("/", async (req, res) => {
@@ -48,12 +53,25 @@ router.get("/my", authMiddleware, async (req: Request, res: Response) => {
             t.id AS "ticketId",
             t.code,
             t."eventId",
+            t."userId",
             t."createdAt",
             t."purchasePrice",
             t."discountApplied",
-            u.username
+            t."discountReviewStatus",
+            u.username,
+            d.id AS "studentDocumentId",
+            d."originalName" AS "studentDocumentName",
+            d."uploadedAt" AS "studentDocumentUploadedAt"
           FROM "Ticket" t
           JOIN "User" u ON u.id = t."userId"
+          LEFT JOIN LATERAL (
+            SELECT d.id, d."originalName", d."uploadedAt"
+            FROM "Document" d
+            WHERE d."userId" = t."userId"
+              AND d.type = 'student_id'
+            ORDER BY d."uploadedAt" DESC
+            LIMIT 1
+          ) d ON true
           WHERE t."eventId" IN (${Prisma.join(eventIds)})
           ORDER BY t."createdAt" DESC
         `);
@@ -76,10 +94,19 @@ router.get("/my", authMiddleware, async (req: Request, res: Response) => {
         sales: eventSales.map((sale) => ({
           id: sale.ticketId,
           code: sale.code,
+          buyerUserId: sale.userId,
           purchasedAt: sale.createdAt,
           purchasePrice: sale.purchasePrice,
           discountApplied: sale.discountApplied,
+          discountReviewStatus: sale.discountReviewStatus,
           buyerUsername: sale.username,
+          studentDocument: sale.studentDocumentId
+            ? {
+                id: sale.studentDocumentId,
+                originalName: sale.studentDocumentName,
+                uploadedAt: sale.studentDocumentUploadedAt,
+              }
+            : undefined,
         })),
       };
     });
@@ -180,12 +207,13 @@ router.post("/:id/buy", authMiddleware, async (req: Request, res: Response) => {
       return res.status(400).send("Sold out");
     }
 
-    const code = crypto.randomBytes(16).toString("hex");
     const ticketId = crypto.randomUUID();
+    const discountReviewStatus = discountApplied ? "pending" : null;
+    const code = discountReviewStatus === "pending" ? null : crypto.randomBytes(16).toString("hex");
     await prisma.$executeRaw(
       Prisma.sql`
-        INSERT INTO "Ticket" ("id", "code", "eventId", "userId", "purchasePrice", "discountApplied", "createdAt")
-        VALUES (${ticketId}, ${code}, ${req.params.id}, ${user.id}, ${finalPrice}, ${discountApplied}, NOW())
+        INSERT INTO "Ticket" ("id", "code", "eventId", "userId", "purchasePrice", "discountApplied", "discountReviewStatus", "createdAt")
+        VALUES (${ticketId}, ${code}, ${req.params.id}, ${user.id}, ${finalPrice}, ${discountApplied}, ${discountReviewStatus}, NOW())
       `
     );
 
@@ -198,8 +226,10 @@ router.post("/:id/buy", authMiddleware, async (req: Request, res: Response) => {
         userId: user.id,
         purchasePrice: finalPrice,
         discountApplied,
+        discountReviewStatus,
       },
       discountApplied,
+      discountReviewStatus,
       finalPrice,
     });
   } catch (error) {

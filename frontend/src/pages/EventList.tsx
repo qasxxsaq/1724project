@@ -65,12 +65,17 @@ export default function EventList() {
 
       const eventDateTime = new Date(`${event.date}T${event.time}`);
       const eventDay = new Date(`${event.date}T00:00:00`);
+      const isUpcoming = !Number.isNaN(eventDateTime.getTime()) && eventDateTime > now;
+      const isPast = !Number.isNaN(eventDateTime.getTime()) && eventDateTime < now;
+      const isAvailable = event.ticketsLeft > 0;
+      const isSoldOut = event.ticketsLeft <= 0;
+      const hasDiscount = event.studentDiscount;
 
-      if (filter === "available") return event.ticketsLeft > 0;
-      if (filter === "soldout") return event.ticketsLeft <= 0;
-      if (filter === "discount") return event.studentDiscount;
-      if (filter === "upcoming") return !Number.isNaN(eventDateTime.getTime()) && eventDateTime > now;
-      if (filter === "past") return !Number.isNaN(eventDateTime.getTime()) && eventDateTime < now;
+      if (filter === "available" && !isAvailable) return false;
+      if (filter === "soldout" && !isSoldOut) return false;
+      if (filter === "discount" && !hasDiscount) return false;
+      if (filter === "upcoming" && !isUpcoming) return false;
+      if (filter === "past" && !isPast) return false;
 
       if (startDate) {
         const start = new Date(`${startDate}T00:00:00`);
@@ -82,7 +87,7 @@ export default function EventList() {
       }
       if (minPrice && event.price < Number(minPrice)) return false;
       if (maxPrice && event.price > Number(maxPrice)) return false;
-      if (onlySoonAvailable && !(event.ticketsLeft > 0 && !Number.isNaN(eventDateTime.getTime()) && eventDateTime > now)) {
+      if (onlySoonAvailable && !(isAvailable && isUpcoming)) {
         return false;
       }
       return true;

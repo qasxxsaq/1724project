@@ -16,22 +16,36 @@ export type Event = {
 
 export type Ticket = {
   id: string;
-  code: string;
+  code: string | null;
   eventId: string;
   userId: string;
+  buyerUsername?: string;
   purchasePrice: number;
   discountApplied: boolean;
+  discountReviewStatus?: "pending" | "approved";
   createdAt: string;
+  studentDocument?: {
+    id: string;
+    originalName: string | null;
+    uploadedAt: string | Date | null;
+  };
   event?: Event;
 };
 
 export type TicketSale = {
   id: string;
-  code: string;
+  code: string | null;
   purchasedAt: string;
   purchasePrice: number;
   discountApplied: boolean;
+  discountReviewStatus?: "pending" | "approved";
   buyerUsername: string;
+  buyerUserId?: string;
+  studentDocument?: {
+    id: string;
+    originalName: string | null;
+    uploadedAt: string | Date | null;
+  };
 };
 
 export type Document = {

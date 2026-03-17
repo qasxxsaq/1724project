@@ -14,6 +14,8 @@ export default function TicketDetail() {
   const [qrData, setQrData] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [approving, setApproving] = useState(false);
+  const role = localStorage.getItem("role");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -33,7 +35,10 @@ export default function TicketDetail() {
   }, [id]);
 
   useEffect(() => {
-    if (!ticket) return;
+    if (!ticket?.code) {
+      setQrData("");
+      return;
+    }
     QRCode.toDataURL(ticket.code)
       .then(setQrData)
       .catch(() => setQrData(""));
@@ -44,6 +49,64 @@ export default function TicketDetail() {
       ? ticket.purchasePrice
       : ticket?.event?.price ?? 0;
 
+  const downloadStudentProof = async () => {
+    const token = localStorage.getItem("token");
+    if (!token || !ticket?.studentDocument) {
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:4000/documents/${ticket.studentDocument.id}/download`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = ticket.studentDocument.originalName || "student-proof";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(err.response?.data || "Failed to download student proof.");
+    }
+  };
+
+  const approveDiscount = async () => {
+    const token = localStorage.getItem("token");
+    if (!token || !ticket) return;
+
+    try {
+      setApproving(true);
+      await axios.post(
+        `http://localhost:4000/tickets/${ticket.id}/review/approve`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      ).then((res) => {
+        setTicket((current) =>
+          current
+            ? {
+                ...current,
+                code: res.data.code ?? current.code,
+                discountReviewStatus: "approved",
+              }
+            : current
+        );
+      });
+    } catch (err: any) {
+      alert(err.response?.data || "Failed to approve student discount.");
+    } finally {
+      setApproving(false);
+    }
+  };
+
   if (loading) return <p className="text-sm text-slate-600">Loading ticket</p>;
   if (error) return <p className="text-sm text-rose-600">{error}</p>;
   if (!ticket) return <p className="text-sm text-slate-600">Ticket not found.</p>;
@@ -52,7 +115,11 @@ export default function TicketDetail() {
     <div className="grid gap-6">
       <div className="space-y-2">
         <h2 className="text-2xl font-semibold text-slate-900">Ticket details</h2>
-        <p className="text-sm text-slate-600">Keep this ticket handy for easy access to the QR code.</p>
+        <p className="text-sm text-slate-600">
+          {role === "organizer"
+            ? "Review ticket purchases and student discount proof for your event."
+            : "Keep this ticket handy for easy access to the QR code."}
+        </p>
       </div>
 
       <Card className="max-w-2xl">
@@ -64,6 +131,12 @@ export default function TicketDetail() {
           <div className="grid gap-2">
             <p className="text-sm text-slate-600">{ticket.event?.date} at {ticket.event?.time}</p>
             <p className="text-sm text-slate-600">{ticket.event?.location}</p>
+            {role === "organizer" && ticket.buyerUsername ? (
+              <p className="text-sm text-slate-600">Buyer: {ticket.buyerUsername}</p>
+            ) : null}
+            <p className="text-sm text-slate-600">
+              Purchased: {new Date(ticket.createdAt).toLocaleString()}
+            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -71,8 +144,49 @@ export default function TicketDetail() {
             <Badge variant={ticket.discountApplied ? "success" : "secondary"}>
               {ticket.discountApplied ? "Student discount" : "No discount"}
             </Badge>
-            <Badge variant="secondary">Code: {ticket.code}</Badge>
+            {ticket.discountApplied && ticket.discountReviewStatus === "pending" ? (
+              <Badge variant="warning">Pending review</Badge>
+            ) : null}
+            {ticket.discountApplied && ticket.discountReviewStatus === "approved" ? (
+              <Badge variant="success">Discount approved</Badge>
+            ) : null}
+            {ticket.code ? <Badge variant="secondary">Code: {ticket.code}</Badge> : null}
           </div>
+
+          {role === "organizer" && ticket.discountApplied ? (
+            ticket.studentDocument ? (
+              <div className="grid gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <div className="grid gap-1">
+                  <p className="text-sm font-medium text-slate-900">Student proof</p>
+                  <p className="text-sm text-slate-700">
+                    {ticket.studentDocument.originalName || "student-proof"}
+                  </p>
+                  <p className="text-xs text-slate-600">
+                    Uploaded{" "}
+                    {ticket.studentDocument.uploadedAt
+                      ? new Date(ticket.studentDocument.uploadedAt).toLocaleString()
+                      : "unknown"}
+                  </p>
+                </div>
+                <Button variant="outline" onClick={downloadStudentProof}>
+                  Download student proof
+                </Button>
+                {ticket.discountReviewStatus === "pending" ? (
+                  <Button onClick={approveDiscount} disabled={approving}>
+                    {approving ? "Approving..." : "Approve student discount"}
+                  </Button>
+                ) : null}
+              </div>
+            ) : (
+              <p className="text-sm text-amber-700">No student proof found for this discounted ticket.</p>
+            )
+          ) : null}
+
+          {ticket.discountApplied && ticket.discountReviewStatus === "pending" && role !== "organizer" ? (
+            <p className="text-sm text-amber-700">
+              Your ticket will be generated after the organizer approves your student discount.
+            </p>
+          ) : null}
 
           {qrData && (
             <div className="flex justify-center">
@@ -88,7 +202,12 @@ export default function TicketDetail() {
             </Button>
           )}
 
-          <Button variant="secondary" onClick={() => navigate("/tickets")}>Back to tickets</Button>
+          <Button
+            variant="secondary"
+            onClick={() => navigate(role === "organizer" ? "/my-events" : "/tickets")}
+          >
+            {role === "organizer" ? "Back to my events" : "Back to tickets"}
+          </Button>
         </CardContent>
       </Card>
     </div>

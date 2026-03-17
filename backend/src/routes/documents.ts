@@ -4,6 +4,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import type { Request, Response } from "express";
+import { Prisma } from "../generated/prisma/client";
 import { prisma } from "../prisma";
 import { authMiddleware } from "../middleware/auth";
 
@@ -93,7 +94,26 @@ router.get("/:id/download", authMiddleware, async (req: Request, res: Response) 
       where: { id: req.params.id },
     });
     if (!document) return res.status(404).send("Document not found");
-    if (document.userId !== user.id) return res.status(403).send("Forbidden");
+    if (document.userId !== user.id) {
+      const organizerAccess =
+        user.role === "organizer" &&
+        document.type === "student_id" &&
+        (
+          await prisma.$queryRaw<{ id: string }[]>(
+            Prisma.sql`
+              SELECT t.id
+              FROM "Ticket" t
+              JOIN "Event" e ON e.id = t."eventId"
+              WHERE t."userId" = ${document.userId}
+                AND t."discountApplied" = true
+                AND e."organizerId" = ${user.id}
+              LIMIT 1
+            `
+          )
+        ).length > 0;
+
+      if (!organizerAccess) return res.status(403).send("Forbidden");
+    }
 
     res.download(document.path, document.originalName);
   } catch (error) {
