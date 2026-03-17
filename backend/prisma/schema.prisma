@@ -42,7 +42,7 @@ model Ticket {
   code            String   @unique
   eventId         String
   userId          String
-  purchasePrice   Int
+  purchasePrice   Int      @default(20)
   discountApplied Boolean  @default(false)
   createdAt       DateTime @default(now())
 
