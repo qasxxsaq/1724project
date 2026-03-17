@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  @apply bg-background text-foreground font-sans antialiased;
+}
+
+* {
+  @apply selection:bg-indigo-100 selection:text-indigo-900;
+}
+
+a {
+  @apply text-indigo-600 hover:text-indigo-700;
+}

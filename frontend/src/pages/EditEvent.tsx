@@ -1,7 +1,11 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import type { Event } from "../types";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 
 export default function EditEvent() {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +39,7 @@ export default function EditEvent() {
           navigate("/my-events");
           return;
         }
+
         setEvent(found);
         setTitle(found.title);
         setLocation(found.location);
@@ -54,6 +59,7 @@ export default function EditEvent() {
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
     setError("");
+
     if (!token) {
       setError("Please login first.");
       navigate("/login");
@@ -81,16 +87,7 @@ export default function EditEvent() {
     try {
       await axios.put(
         `http://localhost:4000/events/${id}`,
-        {
-          title,
-          location,
-          date,
-          time,
-          price,
-          ticketsLeft,
-          info,
-          studentDiscount,
-        },
+        { title, location, date, time, price, ticketsLeft, info, studentDiscount },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       window.dispatchEvent(new Event("eventsUpdated"));
@@ -101,47 +98,95 @@ export default function EditEvent() {
   };
 
   if (!event) {
-    return <div>Loading event...</div>;
+    return <p className="text-sm text-slate-600">Loading event</p>;
   }
 
   return (
-    <div>
-      <h2>Edit Event</h2>
-      <label>Title</label>
-      <br />
-      <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-      <br />
-      <label>Location</label>
-      <br />
-      <input placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} />
-      <br />
-      <label>Date</label>
-      <br />
-      <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      <br />
-      <label>Time</label>
-      <br />
-      <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-      <br />
-      <label>Price</label>
-      <br />
-      <input type="number" placeholder="Price" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
-      <br />
-      <label>Tickets left</label>
-      <br />
-      <input type="number" placeholder="Tickets left" value={ticketsLeft} onChange={(e) => setTicketsLeft(Number(e.target.value))} />
-      <br />
-      <label>Info (optional)</label>
-      <br />
-      <textarea placeholder="Info" value={info} onChange={(e) => setInfo(e.target.value)} />
-      <br />
-      <label>
-        <input type="checkbox" checked={studentDiscount} onChange={(e) => setStudentDiscount(e.target.checked)} />
-        Student Discount Available
-      </label>
-      <br />
-      {error && <div style={{ color: "red", margin: "8px 0" }}>{error}</div>}
-      <button onClick={handleSubmit}>Save Changes</button>
+    <div className="grid gap-6">
+      <div className="space-y-2">
+        <h2 className="text-2xl font-semibold text-slate-900">Edit Event</h2>
+        <p className="text-sm text-slate-600">Update the details for your event and save your changes.</p>
+      </div>
+
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle>Event settings</CardTitle>
+          <CardDescription>Change any information and click Save when youre ready.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Title</Label>
+              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="location">Location</Label>
+              <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-2">
+              <Label htmlFor="date">Date</Label>
+              <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="time">Time</Label>
+              <Input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="price">Price</Label>
+              <Input id="price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="ticketsLeft">Tickets available</Label>
+              <Input
+                id="ticketsLeft"
+                type="number"
+                value={ticketsLeft}
+                onChange={(e) => setTicketsLeft(Number(e.target.value))}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="studentDiscount">Student discount</Label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  id="studentDiscount"
+                  type="checkbox"
+                  checked={studentDiscount}
+                  onChange={(e) => setStudentDiscount(e.target.checked)}
+                  className="h-4 w-4 rounded border-input bg-background text-indigo-500 focus:ring-indigo-500"
+                />
+                Enable student discount
+              </label>
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="info">Description</Label>
+            <textarea
+              id="info"
+              className="min-h-[120px] resize-none rounded-md border border-input bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              value={info}
+              onChange={(e) => setInfo(e.target.value)}
+            />
+          </div>
+
+          {error && <p className="text-sm text-rose-600">{error}</p>}
+
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={handleSubmit}>Save changes</Button>
+            <Button variant="secondary" onClick={() => navigate("/my-events")}>Cancel</Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

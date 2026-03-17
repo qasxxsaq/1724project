@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import QRCode from "qrcode";
 import type { Ticket } from "../types";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
 
 export default function MyTickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -62,74 +65,76 @@ export default function MyTickets() {
     return ticket.event?.price ?? 0;
   };
 
-  if (loading) return <div>Loading your tickets...</div>;
-  if (error) return <div style={{ color: "red" }}>{error}</div>;
-
+  if (loading) return <p className="text-sm text-slate-600">Loading your tickets</p>;
+  if (error) return <p className="text-sm text-rose-600">{error}</p>;
   if (!tickets.length) {
-    return <div>You have no tickets yet. Buy one from the events list.</div>;
+    return <p className="text-sm text-slate-600">You have no tickets yet. Buy one from the events list.</p>;
   }
 
   return (
-    <div style={{ padding: "1rem" }}>
-      <h2>My Tickets</h2>
-      {tickets.map((ticket) => (
-        <div
-          key={ticket.id}
-          style={{
-            border: "1px solid #ccc",
-            padding: "1rem",
-            borderRadius: 8,
-            marginBottom: "1rem",
-            maxWidth: 420,
-          }}
-        >
-          <div style={{ marginBottom: "0.5rem" }}>
-            <strong>Event:</strong> {ticket.event?.title || "Unknown"}
-          </div>
-          <div style={{ marginBottom: "0.5rem" }}>
-            <strong>Date:</strong> {ticket.event?.date} {ticket.event?.time}
-          </div>
-          <div style={{ marginBottom: "0.5rem" }}>
-            <strong>Location:</strong> {ticket.event?.location}
-          </div>
-          <div style={{ marginBottom: "0.5rem" }}>
-            <strong>Ticket ID:</strong> {ticket.id}
-          </div>
-          <div style={{ marginBottom: "0.5rem" }}>
-            <strong>Purchased:</strong> {new Date(ticket.createdAt).toLocaleString()}
-          </div>
-          <div style={{ marginBottom: "0.5rem" }}>
-            <strong>Price paid:</strong> ${getPricePaid(ticket)}
-          </div>
-          <div style={{ marginBottom: "0.5rem" }}>
-            <strong>Student discount:</strong> {ticket.discountApplied ? "Used" : "Not used"}
-          </div>
-          <div style={{ marginBottom: "1rem" }}>
-            <img
-              src={qrData[ticket.id]}
-              alt="Ticket QR code"
-              style={{ width: 180, height: 180 }}
-            />
-          </div>
-          <a
-            href={qrData[ticket.id]}
-            download={`ticket-${ticket.id}.png`}
-            style={{
-              display: "inline-block",
-              padding: "0.5rem 1rem",
-              background: "#1976d2",
-              color: "white",
-              borderRadius: 4,
-              textDecoration: "none",
-            }}
-          >
-            Download Ticket
-          </a>
-          <button onClick={() => navigate(`/tickets/${ticket.id}`)} style={{ marginLeft: "8px" }}>
-            View Details
-          </button>
-        </div>
-      ))}
+    <div className="grid gap-6">
+      <div className="space-y-2">
+        <h2 className="text-2xl font-semibold text-slate-900">My Tickets</h2>
+        <p className="text-sm text-slate-600">Show your tickets and download QR codes for entry.</p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {tickets.map((ticket) => (
+          <Card key={ticket.id} className="space-y-4">
+            <CardHeader>
+              <CardTitle>{ticket.event?.title ?? "Untitled event"}</CardTitle>
+              <CardDescription>
+                {ticket.event?.date} at {ticket.event?.time}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary">Ticket # {ticket.id}</Badge>
+                <Badge>Paid ${getPricePaid(ticket)}</Badge>
+                <Badge variant={ticket.discountApplied ? "success" : "secondary"}>
+                  {ticket.discountApplied ? "Student discount" : "No discount"}
+                </Badge>
+              </div>
+
+              <div className="grid gap-2">
+                <p className="text-sm text-slate-600">
+                  Purchased: {new Date(ticket.createdAt).toLocaleString()}
+                </p>
+                <p className="text-sm text-slate-600">Location: {ticket.event?.location}</p>
+              </div>
+
+              <div className="grid gap-2 md:grid-cols-2">
+                <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  {qrData[ticket.id] ? (
+                    <img src={qrData[ticket.id]} alt="Ticket QR code" className="h-40 w-40" />
+                  ) : (
+                    <p className="text-xs text-slate-500">QR code is loading</p>
+                  )}
+                </div>
+
+                <div className="flex flex-col items-start justify-between gap-3">
+                  <Button
+                    asChild
+                    className="w-full"
+                  >
+                    <a href={qrData[ticket.id]} download={`ticket-${ticket.id}.png`}>
+                      Download ticket
+                    </a>
+                  </Button>
+
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    onClick={() => navigate(`/tickets/${ticket.id}`)}
+                  >
+                    View details
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

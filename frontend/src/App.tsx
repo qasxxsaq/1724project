@@ -12,24 +12,71 @@ import MyTickets from "./pages/MyTickets";
 import MyDocuments from "./pages/MyDocuments";
 import TicketDetail from "./pages/TicketDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { Container } from "./components/Container";
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/events" element={<EventList />} />
-        <Route path="/events/:id" element={<EventDetail />} />
-        <Route path="/create" element={<ProtectedRoute roles={["organizer"]}><CreateEvent /></ProtectedRoute>} />
-        <Route path="/my-events" element={<ProtectedRoute roles={["organizer"]}><MyEvents /></ProtectedRoute>} />
-        <Route path="/my-events/edit/:id" element={<ProtectedRoute roles={["organizer"]}><EditEvent /></ProtectedRoute>} />
-        <Route path="/tickets" element={<ProtectedRoute roles={["customer"]}><MyTickets /></ProtectedRoute>} />
-        <Route path="/tickets/:id" element={<ProtectedRoute roles={["customer"]}><TicketDetail /></ProtectedRoute>} />
-        <Route path="/documents" element={<ProtectedRoute roles={["customer"]}><MyDocuments /></ProtectedRoute>} />
-      </Routes>
+      <div className="min-h-screen bg-background text-foreground">
+        <Navbar />
+        <Container>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/events" element={<EventList />} />
+            <Route path="/events/:id" element={<EventDetail />} />
+            <Route
+              path="/create"
+              element={
+                <ProtectedRoute roles={["organizer"]}>
+                  <CreateEvent />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-events"
+              element={
+                <ProtectedRoute roles={["organizer"]}>
+                  <MyEvents />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-events/edit/:id"
+              element={
+                <ProtectedRoute roles={["organizer"]}>
+                  <EditEvent />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tickets"
+              element={
+                <ProtectedRoute roles={["customer"]}>
+                  <MyTickets />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tickets/:id"
+              element={
+                <ProtectedRoute roles={["customer"]}>
+                  <TicketDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/documents"
+              element={
+                <ProtectedRoute roles={["customer"]}>
+                  <MyDocuments />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Container>
+      </div>
     </BrowserRouter>
   );
 }

@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { Document } from "../types";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
 
 const MyDocuments: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -127,88 +130,95 @@ const MyDocuments: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">My Documents</h1>
+    <div className="grid gap-6">
+      <div className="space-y-2">
+        <h2 className="text-2xl font-semibold text-slate-900">My Documents</h2>
+        <p className="text-sm text-slate-600">Upload, view, and download documents securely.</p>
+      </div>
 
-      <form onSubmit={handleUpload} className="mb-8">
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Document Type</label>
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            className="border p-2 rounded w-full"
-          >
-            <option value="student_id">Student ID</option>
-            <option value="proof_of_age">Proof of Age</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Select File</label>
-          <input
-            type="file"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-            className="border p-2 rounded w-full"
-            accept="image/*,.pdf"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={!file || loading}
-          className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
-        >
-          {loading ? "Uploading..." : "Upload"}
-        </button>
-      </form>
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle>Upload a document</CardTitle>
+          <CardDescription>Select a file and choose a type to upload.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <form onSubmit={handleUpload} className="grid gap-4">
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-slate-700">Document type</label>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="h-10 rounded-md border border-input bg-white px-3 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="student_id">Student ID</option>
+                <option value="proof_of_age">Proof of Age</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
 
-      <h2 className="text-xl font-bold mb-4">Uploaded Documents</h2>
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-slate-700">Select file</label>
+              <input
+                type="file"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                className="text-sm text-slate-700"
+                accept="image/*,.pdf"
+              />
+            </div>
+
+            <Button type="submit" disabled={!file || loading}>
+              {loading ? "Uploading" : "Upload document"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-2">
+        <h3 className="text-xl font-semibold text-slate-900">Uploaded documents</h3>
+        <p className="text-sm text-slate-600">Manage your files and download or view them anytime.</p>
+      </div>
+
       <div className="grid gap-4">
         {documents.map((doc) => (
-          <div key={doc.id} className="border p-4 rounded flex justify-between items-center">
-            <div>
-              <p className="font-medium">{doc.originalName}</p>
-              <p className="text-sm text-gray-600">Type: {doc.type}</p>
-              <p className="text-sm text-gray-600">Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}</p>
+          <Card key={doc.id} className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-base font-semibold text-slate-900">{doc.originalName}</p>
+                <p className="text-sm text-slate-500">Type: {doc.type}</p>
+                <p className="text-sm text-slate-500">Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}</p>
+              </div>
+              <Badge>{doc.mimetype}</Badge>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleView(doc)}
-                className="bg-blue-500 text-white px-3 py-1 rounded"
-              >
+
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" size="sm" onClick={() => handleView(doc)}>
                 View
-              </button>
-              <button
-                onClick={() => handleDownload(doc)}
-                className="bg-green-500 text-white px-3 py-1 rounded"
-              >
+              </Button>
+              <Button variant="default" size="sm" onClick={() => handleDownload(doc)}>
                 Download
-              </button>
-              <button
-                onClick={() => handleDelete(doc.id)}
-                className="bg-red-500 text-white px-3 py-1 rounded"
-              >
+              </Button>
+              <Button variant="destructive" size="sm" onClick={() => handleDelete(doc.id)}>
                 Delete
-              </button>
+              </Button>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
       {viewDoc && viewBlob && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded max-w-3xl max-h-3xl overflow-auto">
-            <h3 className="text-lg font-bold mb-2">{viewDoc.originalName}</h3>
-            <img src={viewBlob} alt={viewDoc.originalName} className="max-w-full max-h-full" />
-            <button
-              onClick={() => {
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="relative w-full max-w-3xl overflow-auto rounded-2xl bg-white p-6 shadow-lg">
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="text-lg font-semibold text-slate-900">{viewDoc.originalName}</h3>
+              <Button variant="ghost" size="sm" onClick={() => {
                 setViewDoc(null);
                 setViewBlob(null);
                 URL.revokeObjectURL(viewBlob);
-              }}
-              className="mt-4 bg-gray-500 text-white px-4 py-2 rounded"
-            >
-              Close
-            </button>
+              }}>
+                Close
+              </Button>
+            </div>
+            <img src={viewBlob} alt={viewDoc.originalName} className="mt-4 w-full rounded-xl border border-slate-200" />
           </div>
         </div>
       )}

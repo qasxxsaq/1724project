@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import QRCode from "qrcode";
 import type { Ticket } from "../types";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
 
 export default function TicketDetail() {
   const { id } = useParams();
@@ -39,46 +42,55 @@ export default function TicketDetail() {
   const pricePaid =
     ticket && typeof ticket.purchasePrice === "number" && !Number.isNaN(ticket.purchasePrice)
       ? ticket.purchasePrice
-      : (ticket?.event?.price ?? 0);
+      : ticket?.event?.price ?? 0;
 
-  if (loading) return <div>Loading ticket...</div>;
-  if (error) return <div style={{ color: "red" }}>{error}</div>;
-  if (!ticket) return <div>Ticket not found.</div>;
+  if (loading) return <p className="text-sm text-slate-600">Loading ticket</p>;
+  if (error) return <p className="text-sm text-rose-600">{error}</p>;
+  if (!ticket) return <p className="text-sm text-slate-600">Ticket not found.</p>;
 
   return (
-    <div style={{ padding: "1rem", maxWidth: "520px" }}>
-      <h2>Ticket Detail</h2>
-      <p><strong>Event:</strong> {ticket.event?.title}</p>
-      <p><strong>Date:</strong> {ticket.event?.date} {ticket.event?.time}</p>
-      <p><strong>Location:</strong> {ticket.event?.location}</p>
-      <p><strong>Purchase time:</strong> {new Date(ticket.createdAt).toLocaleString()}</p>
-      <p><strong>Purchase price:</strong> ${pricePaid}</p>
-      <p><strong>Student discount used:</strong> {ticket.discountApplied ? "Yes" : "No"}</p>
-      <p><strong>Ticket ID:</strong> {ticket.id}</p>
-      <p><strong>Code:</strong> {ticket.code}</p>
-      {qrData && (
-        <div style={{ margin: "1rem 0" }}>
-          <img src={qrData} alt="Ticket QR code" style={{ width: 180, height: 180 }} />
-        </div>
-      )}
-      {qrData && (
-        <a
-          href={qrData}
-          download={`ticket-${ticket.id}.png`}
-          style={{
-            display: "inline-block",
-            padding: "0.5rem 1rem",
-            background: "#1976d2",
-            color: "white",
-            borderRadius: 4,
-            textDecoration: "none",
-            marginRight: "8px",
-          }}
-        >
-          Download Ticket
-        </a>
-      )}
-      <button onClick={() => navigate("/tickets")}>Back to My Tickets</button>
+    <div className="grid gap-6">
+      <div className="space-y-2">
+        <h2 className="text-2xl font-semibold text-slate-900">Ticket details</h2>
+        <p className="text-sm text-slate-600">Keep this ticket handy for easy access to the QR code.</p>
+      </div>
+
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle>{ticket.event?.title ?? "Event ticket"}</CardTitle>
+          <CardDescription>Ticket ID: {ticket.id}</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-2">
+            <p className="text-sm text-slate-600">{ticket.event?.date} at {ticket.event?.time}</p>
+            <p className="text-sm text-slate-600">{ticket.event?.location}</p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge>Paid ${pricePaid.toFixed(2)}</Badge>
+            <Badge variant={ticket.discountApplied ? "success" : "secondary"}>
+              {ticket.discountApplied ? "Student discount" : "No discount"}
+            </Badge>
+            <Badge variant="secondary">Code: {ticket.code}</Badge>
+          </div>
+
+          {qrData && (
+            <div className="flex justify-center">
+              <img className="h-44 w-44 rounded-xl border border-slate-200 bg-slate-50" src={qrData} alt="Ticket QR code" />
+            </div>
+          )}
+
+          {qrData && (
+            <Button asChild>
+              <a href={qrData} download={`ticket-${ticket.id}.png`}>
+                Download ticket
+              </a>
+            </Button>
+          )}
+
+          <Button variant="secondary" onClick={() => navigate("/tickets")}>Back to tickets</Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

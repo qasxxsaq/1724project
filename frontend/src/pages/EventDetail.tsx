@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import type { Event } from "../types";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
 
 export default function EventDetail() {
   const { id } = useParams();
@@ -11,6 +14,7 @@ export default function EventDetail() {
 
   useEffect(() => {
     if (!id) return;
+
     setLoading(true);
     axios
       .get(`http://localhost:4000/events/${id}`)
@@ -22,26 +26,34 @@ export default function EventDetail() {
   const buy = async () => {
     if (!id) return;
     const token = localStorage.getItem("token");
+
     try {
       const res = await axios.post(
         `http://localhost:4000/events/${id}/buy`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       const { message, discountApplied, finalPrice } = res.data;
       if (discountApplied) {
         alert(`${message} - Student discount applied! Final price: $${finalPrice}`);
       } else {
         alert(message);
       }
+
       navigate("/tickets");
     } catch (err: any) {
       alert(err.response?.data || "Purchase failed.");
     }
   };
 
-  if (loading) return <div>Loading event...</div>;
-  if (!event) return <div>Event not found.</div>;
+  if (loading) {
+    return <p className="text-sm text-slate-600">Loading event details</p>;
+  }
+
+  if (!event) {
+    return <p className="text-sm text-slate-600">Event not found.</p>;
+  }
 
   const role = localStorage.getItem("role");
   const userId = localStorage.getItem("userId");
@@ -50,33 +62,77 @@ export default function EventDetail() {
   const canEdit = role === "organizer" && userId && userId === event.organizerId && !isPastEvent;
 
   return (
-    <div style={{ padding: "1rem" }}>
-      <h2>{event.title}</h2>
-      <p><strong>Location:</strong> {event.location}</p>
-      <p><strong>Date:</strong> {event.date}</p>
-      <p><strong>Time:</strong> {event.time}</p>
-      <p><strong>Price:</strong> ${event.price}</p>
-      {event.studentDiscount && <p><strong>Student Discount:</strong> 20% off with valid student ID</p>}
-      <p><strong>Tickets left:</strong> {event.ticketsLeft}</p>
-      {event.ticketsLeft <= 0 && (
-        <div style={{ margin: "8px 0" }}>
-          <span className="badge status_soldout">Sold out</span>
-        </div>
-      )}
-      <p><strong>Description:</strong> {event.info}</p>
-      <div style={{ marginTop: "8px" }}>
-        {role === "customer" && (
-          <button onClick={buy} style={{ marginRight: "8px" }} disabled={event.ticketsLeft <= 0}>
-            {event.ticketsLeft <= 0 ? "Sold Out" : "Buy Ticket"}
-          </button>
-        )}
-        {canEdit && (
-          <button onClick={() => navigate(`/my-events/edit/${event.id}`)} style={{ marginRight: "8px" }}>
-            Edit Event
-          </button>
-        )}
-        <button onClick={() => navigate("/events")}>Back to list</button>
+    <div className="grid gap-6">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-2xl font-semibold text-slate-900">{event.title}</h2>
+        <p className="text-sm text-slate-600">Find the latest details about this event below.</p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{event.title}</CardTitle>
+          <CardDescription>{event.location}</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-2 md:grid-cols-2">
+            <div className="space-y-1">
+              <p className="text-sm text-slate-500">Date</p>
+              <p className="text-base text-slate-900">{event.date}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-slate-500">Time</p>
+              <p className="text-base text-slate-900">{event.time}</p>
+            </div>
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-2">
+            <div className="space-y-1">
+              <p className="text-sm text-slate-500">Price</p>
+              <p className="text-base text-slate-900">${event.price.toFixed(2)}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-slate-500">Tickets</p>
+              <p className="text-base text-slate-900">{event.ticketsLeft} remaining</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {event.ticketsLeft <= 0 ? (
+              <Badge variant="danger">Sold out</Badge>
+            ) : (
+              <Badge variant="success">Available</Badge>
+            )}
+            {event.ticketsLeft > 0 && event.ticketsLeft <= 3 && <Badge variant="warning">Low availability</Badge>}
+            {event.studentDiscount && <Badge>Student discount</Badge>}
+            {isPastEvent && <Badge variant="secondary">Past event</Badge>}
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-sm text-slate-500">Description</p>
+            <p className="text-sm text-slate-700">{event.info}</p>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            {role === "customer" && (
+              <Button
+                onClick={buy}
+                disabled={event.ticketsLeft <= 0}
+                className="min-w-[160px]"
+              >
+                {event.ticketsLeft <= 0 ? "Sold out" : "Buy ticket"}
+              </Button>
+            )}
+
+            {canEdit && (
+              <Button variant="secondary" onClick={() => navigate(`/my-events/edit/${event.id}`)}>
+                Edit event
+              </Button>
+            )}
+
+            <Button variant="ghost" onClick={() => navigate("/events")}>Back to events</Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
