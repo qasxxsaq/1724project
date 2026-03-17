@@ -9,6 +9,11 @@ export default function MyEvents() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "upcoming" | "past" | "soldout" | "discount">("all");
   const [sort, setSort] = useState<"soonest" | "latest" | "lowTickets" | "highRevenue">("soonest");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [onlySoonAvailable, setOnlySoonAvailable] = useState(false);
   const navigate = useNavigate();
 
   const loadEvents = useCallback(() => {
@@ -61,6 +66,21 @@ export default function MyEvents() {
   const normalizedSearch = search.trim().toLowerCase();
   const now = new Date();
 
+  const totalRevenue = events.reduce((sum, event) => sum + (event.revenue ?? 0), 0);
+  const totalTicketsSold = events.reduce((sum, event) => sum + (event.soldCount ?? 0), 0);
+  const soldOutCount = events.filter((event) => event.ticketsLeft <= 0).length;
+
+  const resetFilters = () => {
+    setSearch("");
+    setFilter("all");
+    setSort("soonest");
+    setStartDate("");
+    setEndDate("");
+    setMinPrice("");
+    setMaxPrice("");
+    setOnlySoonAvailable(false);
+  };
+
   const filteredEvents = events
     .filter((event) => {
       const matchesSearch =
@@ -72,11 +92,26 @@ export default function MyEvents() {
       if (!matchesSearch) return false;
 
       const eventDateTime = new Date(`${event.date}T${event.time}`);
+      const eventDay = new Date(`${event.date}T00:00:00`);
 
       if (filter === "upcoming") return !Number.isNaN(eventDateTime.getTime()) && eventDateTime > now;
       if (filter === "past") return !Number.isNaN(eventDateTime.getTime()) && eventDateTime < now;
       if (filter === "soldout") return event.ticketsLeft <= 0;
       if (filter === "discount") return event.studentDiscount;
+
+      if (startDate) {
+        const start = new Date(`${startDate}T00:00:00`);
+        if (eventDay < start) return false;
+      }
+      if (endDate) {
+        const end = new Date(`${endDate}T23:59:59`);
+        if (eventDay > end) return false;
+      }
+      if (minPrice && event.price < Number(minPrice)) return false;
+      if (maxPrice && event.price > Number(maxPrice)) return false;
+      if (onlySoonAvailable && !(event.ticketsLeft > 0 && !Number.isNaN(eventDateTime.getTime()) && eventDateTime > now)) {
+        return false;
+      }
       return true;
     })
     .sort((a, b) => {
@@ -93,6 +128,11 @@ export default function MyEvents() {
     <div>
       <h2>My Events</h2>
       {loading && <p>Updating dashboard...</p>}
+      <div style={{ border: "1px solid #ddd", padding: "12px", borderRadius: "8px", marginBottom: "12px" }}>
+        <p><strong>Total revenue:</strong> ${totalRevenue}</p>
+        <p><strong>Total tickets sold:</strong> {totalTicketsSold}</p>
+        <p><strong>Sold out events:</strong> {soldOutCount}</p>
+      </div>
       <div className="filters">
         <input
           className="search"
@@ -117,6 +157,17 @@ export default function MyEvents() {
           <option value="lowTickets">Sort: Lowest tickets</option>
           <option value="highRevenue">Sort: Highest revenue</option>
         </select>
+        <div style={{ marginTop: "8px" }}>
+          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ marginRight: "8px" }} />
+          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ marginRight: "8px" }} />
+          <input type="number" placeholder="Min price" value={minPrice} onChange={e => setMinPrice(e.target.value)} style={{ width: "100px", marginRight: "8px" }} />
+          <input type="number" placeholder="Max price" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} style={{ width: "100px", marginRight: "8px" }} />
+          <label style={{ marginRight: "8px" }}>
+            <input type="checkbox" checked={onlySoonAvailable} onChange={e => setOnlySoonAvailable(e.target.checked)} />
+            {" "}Upcoming with tickets
+          </label>
+          <button onClick={resetFilters}>Reset filters</button>
+        </div>
       </div>
       {filteredEvents.length === 0 ? (
         <p>{events.length === 0 ? "You have not created any events yet." : "No matching events found."}</p>

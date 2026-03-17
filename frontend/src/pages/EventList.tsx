@@ -8,6 +8,11 @@ export default function EventList() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "available" | "soldout" | "discount" | "upcoming" | "past">("all");
   const [sort, setSort] = useState<"soonest" | "latest" | "lowPrice" | "highPrice">("soonest");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [onlySoonAvailable, setOnlySoonAvailable] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,6 +33,17 @@ export default function EventList() {
   const normalizedSearch = search.trim().toLowerCase();
   const now = new Date();
 
+  const resetFilters = () => {
+    setSearch("");
+    setFilter("all");
+    setSort("soonest");
+    setStartDate("");
+    setEndDate("");
+    setMinPrice("");
+    setMaxPrice("");
+    setOnlySoonAvailable(false);
+  };
+
   const filteredEvents = events
     .filter((event) => {
       const matchesSearch =
@@ -39,12 +55,27 @@ export default function EventList() {
       if (!matchesSearch) return false;
 
       const eventDateTime = new Date(`${event.date}T${event.time}`);
+      const eventDay = new Date(`${event.date}T00:00:00`);
 
       if (filter === "available") return event.ticketsLeft > 0;
       if (filter === "soldout") return event.ticketsLeft <= 0;
       if (filter === "discount") return event.studentDiscount;
       if (filter === "upcoming") return !Number.isNaN(eventDateTime.getTime()) && eventDateTime > now;
       if (filter === "past") return !Number.isNaN(eventDateTime.getTime()) && eventDateTime < now;
+
+      if (startDate) {
+        const start = new Date(`${startDate}T00:00:00`);
+        if (eventDay < start) return false;
+      }
+      if (endDate) {
+        const end = new Date(`${endDate}T23:59:59`);
+        if (eventDay > end) return false;
+      }
+      if (minPrice && event.price < Number(minPrice)) return false;
+      if (maxPrice && event.price > Number(maxPrice)) return false;
+      if (onlySoonAvailable && !(event.ticketsLeft > 0 && !Number.isNaN(eventDateTime.getTime()) && eventDateTime > now)) {
+        return false;
+      }
       return true;
     })
     .sort((a, b) => {
@@ -86,6 +117,17 @@ export default function EventList() {
           <option value="lowPrice">Sort: Lowest price</option>
           <option value="highPrice">Sort: Highest price</option>
         </select>
+        <div style={{ marginTop: "8px" }}>
+          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ marginRight: "8px" }} />
+          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ marginRight: "8px" }} />
+          <input type="number" placeholder="Min price" value={minPrice} onChange={e => setMinPrice(e.target.value)} style={{ width: "100px", marginRight: "8px" }} />
+          <input type="number" placeholder="Max price" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} style={{ width: "100px", marginRight: "8px" }} />
+          <label style={{ marginRight: "8px" }}>
+            <input type="checkbox" checked={onlySoonAvailable} onChange={e => setOnlySoonAvailable(e.target.checked)} />
+            {" "}Upcoming with tickets
+          </label>
+          <button onClick={resetFilters}>Reset filters</button>
+        </div>
       </div>
       {filteredEvents.length === 0 && <p>{events.length === 0 ? "No events yet." : "No matching events found."}</p>}
       {filteredEvents.map(e => (

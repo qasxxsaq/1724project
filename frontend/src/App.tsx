@@ -11,6 +11,7 @@ import MyEvents from "./pages/MyEvents";
 import MyTickets from "./pages/MyTickets";
 import MyDocuments from "./pages/MyDocuments";
 import TicketDetail from "./pages/TicketDetail";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -22,12 +23,12 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/events" element={<EventList />} />
         <Route path="/events/:id" element={<EventDetail />} />
-        <Route path="/create" element={<CreateEvent />} />
-        <Route path="/my-events" element={<MyEvents />} />
-        <Route path="/my-events/edit/:id" element={<EditEvent />} />
-        <Route path="/tickets" element={<MyTickets />} />
-        <Route path="/tickets/:id" element={<TicketDetail />} />
-        <Route path="/documents" element={<MyDocuments />} />
+        <Route path="/create" element={<ProtectedRoute roles={["organizer"]}><CreateEvent /></ProtectedRoute>} />
+        <Route path="/my-events" element={<ProtectedRoute roles={["organizer"]}><MyEvents /></ProtectedRoute>} />
+        <Route path="/my-events/edit/:id" element={<ProtectedRoute roles={["organizer"]}><EditEvent /></ProtectedRoute>} />
+        <Route path="/tickets" element={<ProtectedRoute roles={["customer"]}><MyTickets /></ProtectedRoute>} />
+        <Route path="/tickets/:id" element={<ProtectedRoute roles={["customer"]}><TicketDetail /></ProtectedRoute>} />
+        <Route path="/documents" element={<ProtectedRoute roles={["customer"]}><MyDocuments /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
