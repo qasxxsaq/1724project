@@ -29,6 +29,12 @@ export default function EditEvent() {
           navigate("/events");
           return;
         }
+        const foundDateTime = new Date(`${found.date}T${found.time}`);
+        if (!Number.isNaN(foundDateTime.getTime()) && foundDateTime <= new Date()) {
+          setError("Past events cannot be edited.");
+          navigate("/my-events");
+          return;
+        }
         setEvent(found);
         setTitle(found.title);
         setLocation(found.location);

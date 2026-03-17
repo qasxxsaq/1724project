@@ -124,6 +124,11 @@ export default function MyEvents() {
       return aDate - bDate;
     });
 
+  const isPastEvent = (event: Event) => {
+    const eventDateTime = new Date(`${event.date}T${event.time}`);
+    return !Number.isNaN(eventDateTime.getTime()) && eventDateTime <= now;
+  };
+
   return (
     <div>
       <h2>My Events</h2>
@@ -207,7 +212,9 @@ export default function MyEvents() {
                 <p>No tickets sold yet.</p>
               )}
             </div>
-            <button onClick={() => navigate(`/my-events/edit/${e.id}`)}>Edit</button>
+            {!isPastEvent(e) && (
+              <button onClick={() => navigate(`/my-events/edit/${e.id}`)}>Edit</button>
+            )}
             <button onClick={() => {
               if (window.confirm("Confirm delete this event?")) {
                 handleDelete(e.id);

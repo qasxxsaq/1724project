@@ -45,7 +45,9 @@ export default function EventDetail() {
 
   const role = localStorage.getItem("role");
   const userId = localStorage.getItem("userId");
-  const canEdit = role === "organizer" && userId && userId === event.organizerId;
+  const eventDateTime = new Date(`${event.date}T${event.time}`);
+  const isPastEvent = !Number.isNaN(eventDateTime.getTime()) && eventDateTime <= new Date();
+  const canEdit = role === "organizer" && userId && userId === event.organizerId && !isPastEvent;
 
   return (
     <div style={{ padding: "1rem" }}>

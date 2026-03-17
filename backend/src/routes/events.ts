@@ -220,6 +220,10 @@ router.put("/:id", authMiddleware, async (req: Request, res: Response) => {
       where: { id: req.params.id, organizerId: user.id },
     });
     if (!exists) return res.status(404).send("Event not found");
+    const existingEventDateTime = new Date(`${exists.date}T${exists.time}`);
+    if (!Number.isNaN(existingEventDateTime.getTime()) && existingEventDateTime <= new Date()) {
+      return res.status(400).send("Past events cannot be edited");
+    }
 
     const { title, location, date, time, price, ticketsLeft, info, studentDiscount } = req.body;
     if (price !== undefined && Number(price) < 0) return res.status(400).send("Price cannot be negative");
