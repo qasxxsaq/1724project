@@ -2,10 +2,21 @@ import "dotenv/config";
 import crypto from "crypto";
 import express from "express";
 import type { Request, Response } from "express";
+import { Prisma } from "../generated/prisma/client";
 import { prisma } from "../prisma";
 import { authMiddleware } from "../middleware/auth";
 
 const router = express.Router();
+
+type EventSaleRow = {
+  ticketId: string;
+  code: string;
+  eventId: string;
+  createdAt: Date;
+  purchasePrice: number;
+  discountApplied: boolean;
+  username: string;
+};
 
 router.get("/", async (req, res) => {
   try {
@@ -25,9 +36,55 @@ router.get("/my", authMiddleware, async (req: Request, res: Response) => {
     return res.status(403).send("Forbidden");
   }
   try {
-    const myEvents = await prisma.event.findMany({ where: { organizerId: user.id } });
+    const myEvents = await prisma.event.findMany({
+      where: { organizerId: user.id },
+      orderBy: [{ date: "asc" }, { time: "asc" }],
+    });
+    const eventIds = myEvents.map((event) => event.id);
+    const sales = eventIds.length === 0
+      ? []
+      : await prisma.$queryRaw<EventSaleRow[]>(Prisma.sql`
+          SELECT
+            t.id AS "ticketId",
+            t.code,
+            t."eventId",
+            t."createdAt",
+            t."purchasePrice",
+            t."discountApplied",
+            u.username
+          FROM "Ticket" t
+          JOIN "User" u ON u.id = t."userId"
+          WHERE t."eventId" IN (${Prisma.join(eventIds)})
+          ORDER BY t."createdAt" DESC
+        `);
+    const salesByEventId = new Map<string, EventSaleRow[]>();
+    for (const sale of sales) {
+      const existing = salesByEventId.get(sale.eventId) ?? [];
+      existing.push(sale);
+      salesByEventId.set(sale.eventId, existing);
+    }
+
+    const eventsWithSales = myEvents.map((event) => {
+      const eventSales = salesByEventId.get(event.id) ?? [];
+      const soldCount = eventSales.length;
+      const revenue = eventSales.reduce((sum, sale) => sum + sale.purchasePrice, 0);
+
+      return {
+        ...event,
+        soldCount,
+        revenue,
+        sales: eventSales.map((sale) => ({
+          id: sale.ticketId,
+          code: sale.code,
+          purchasedAt: sale.createdAt,
+          purchasePrice: sale.purchasePrice,
+          discountApplied: sale.discountApplied,
+          buyerUsername: sale.username,
+        })),
+      };
+    });
     console.log('myEvents count', myEvents.length);
-    res.json(myEvents);
+    res.json(eventsWithSales);
   } catch (error) {
     console.error(error);
     res.status(500).send("Server error");
@@ -124,16 +181,27 @@ router.post("/:id/buy", authMiddleware, async (req: Request, res: Response) => {
     }
 
     const code = crypto.randomBytes(16).toString("hex");
-    const ticket = await prisma.ticket.create({
-      data: {
+    const ticketId = crypto.randomUUID();
+    await prisma.$executeRaw(
+      Prisma.sql`
+        INSERT INTO "Ticket" ("id", "code", "eventId", "userId", "purchasePrice", "discountApplied", "createdAt")
+        VALUES (${ticketId}, ${code}, ${req.params.id}, ${user.id}, ${finalPrice}, ${discountApplied}, NOW())
+      `
+    );
+
+    res.json({
+      message: "Ticket purchased",
+      ticket: {
+        id: ticketId,
         code,
         eventId: req.params.id,
         userId: user.id,
+        purchasePrice: finalPrice,
+        discountApplied,
       },
-      include: { event: true },
+      discountApplied,
+      finalPrice,
     });
-
-    res.json({ message: "Ticket purchased", ticket, discountApplied, finalPrice });
   } catch (error) {
     console.error(error);
     res.status(500).send("Server error");

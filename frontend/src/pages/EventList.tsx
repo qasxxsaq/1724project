@@ -6,7 +6,8 @@ import type { Event } from "../types";
 export default function EventList() {
   const [events, setEvents] = useState<Event[]>([]);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "available" | "soldout" | "discount">("all");
+  const [filter, setFilter] = useState<"all" | "available" | "soldout" | "discount" | "upcoming" | "past">("all");
+  const [sort, setSort] = useState<"soonest" | "latest" | "lowPrice" | "highPrice">("soonest");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,21 +26,36 @@ export default function EventList() {
 
   const role = localStorage.getItem("role");
   const normalizedSearch = search.trim().toLowerCase();
+  const now = new Date();
 
-  const filteredEvents = events.filter((event) => {
-    const matchesSearch =
-      normalizedSearch.length === 0 ||
-      event.title.toLowerCase().includes(normalizedSearch) ||
-      event.location.toLowerCase().includes(normalizedSearch) ||
-      event.info.toLowerCase().includes(normalizedSearch);
+  const filteredEvents = events
+    .filter((event) => {
+      const matchesSearch =
+        normalizedSearch.length === 0 ||
+        event.title.toLowerCase().includes(normalizedSearch) ||
+        event.location.toLowerCase().includes(normalizedSearch) ||
+        event.info.toLowerCase().includes(normalizedSearch);
 
-    if (!matchesSearch) return false;
+      if (!matchesSearch) return false;
 
-    if (filter === "available") return event.ticketsLeft > 0;
-    if (filter === "soldout") return event.ticketsLeft <= 0;
-    if (filter === "discount") return event.studentDiscount;
-    return true;
-  });
+      const eventDateTime = new Date(`${event.date}T${event.time}`);
+
+      if (filter === "available") return event.ticketsLeft > 0;
+      if (filter === "soldout") return event.ticketsLeft <= 0;
+      if (filter === "discount") return event.studentDiscount;
+      if (filter === "upcoming") return !Number.isNaN(eventDateTime.getTime()) && eventDateTime > now;
+      if (filter === "past") return !Number.isNaN(eventDateTime.getTime()) && eventDateTime < now;
+      return true;
+    })
+    .sort((a, b) => {
+      const aDate = new Date(`${a.date}T${a.time}`).getTime();
+      const bDate = new Date(`${b.date}T${b.time}`).getTime();
+
+      if (sort === "latest") return bDate - aDate;
+      if (sort === "lowPrice") return a.price - b.price;
+      if (sort === "highPrice") return b.price - a.price;
+      return aDate - bDate;
+    });
 
   return (
     <div>
@@ -54,12 +70,21 @@ export default function EventList() {
         />
         <select
           value={filter}
-          onChange={e => setFilter(e.target.value as "all" | "available" | "soldout" | "discount")}
+          onChange={e => setFilter(e.target.value as "all" | "available" | "soldout" | "discount" | "upcoming" | "past")}
+          style={{ marginRight: "8px" }}
         >
           <option value="all">All events</option>
           <option value="available">Available</option>
           <option value="soldout">Sold out</option>
           <option value="discount">Student discount</option>
+          <option value="upcoming">Upcoming</option>
+          <option value="past">Past</option>
+        </select>
+        <select value={sort} onChange={e => setSort(e.target.value as "soonest" | "latest" | "lowPrice" | "highPrice")}>
+          <option value="soonest">Sort: Soonest</option>
+          <option value="latest">Sort: Latest</option>
+          <option value="lowPrice">Sort: Lowest price</option>
+          <option value="highPrice">Sort: Highest price</option>
         </select>
       </div>
       {filteredEvents.length === 0 && <p>{events.length === 0 ? "No events yet." : "No matching events found."}</p>}

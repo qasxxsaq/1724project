@@ -10,6 +10,7 @@ import Navbar from "./components/Navbar";
 import MyEvents from "./pages/MyEvents";
 import MyTickets from "./pages/MyTickets";
 import MyDocuments from "./pages/MyDocuments";
+import TicketDetail from "./pages/TicketDetail";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/my-events" element={<MyEvents />} />
         <Route path="/my-events/edit/:id" element={<EditEvent />} />
         <Route path="/tickets" element={<MyTickets />} />
+        <Route path="/tickets/:id" element={<TicketDetail />} />
         <Route path="/documents" element={<MyDocuments />} />
       </Routes>
     </BrowserRouter>

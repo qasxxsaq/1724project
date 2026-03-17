@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import QRCode from "qrcode";
 import type { Ticket } from "../types";
@@ -8,6 +9,7 @@ export default function MyTickets() {
   const [qrData, setQrData] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -53,6 +55,13 @@ export default function MyTickets() {
     generate();
   }, [tickets]);
 
+  const getPricePaid = (ticket: Ticket) => {
+    if (typeof ticket.purchasePrice === "number" && !Number.isNaN(ticket.purchasePrice)) {
+      return ticket.purchasePrice;
+    }
+    return ticket.event?.price ?? 0;
+  };
+
   if (loading) return <div>Loading your tickets...</div>;
   if (error) return <div style={{ color: "red" }}>{error}</div>;
 
@@ -86,6 +95,15 @@ export default function MyTickets() {
           <div style={{ marginBottom: "0.5rem" }}>
             <strong>Ticket ID:</strong> {ticket.id}
           </div>
+          <div style={{ marginBottom: "0.5rem" }}>
+            <strong>Purchased:</strong> {new Date(ticket.createdAt).toLocaleString()}
+          </div>
+          <div style={{ marginBottom: "0.5rem" }}>
+            <strong>Price paid:</strong> ${getPricePaid(ticket)}
+          </div>
+          <div style={{ marginBottom: "0.5rem" }}>
+            <strong>Student discount:</strong> {ticket.discountApplied ? "Used" : "Not used"}
+          </div>
           <div style={{ marginBottom: "1rem" }}>
             <img
               src={qrData[ticket.id]}
@@ -107,6 +125,9 @@ export default function MyTickets() {
           >
             Download Ticket
           </a>
+          <button onClick={() => navigate(`/tickets/${ticket.id}`)} style={{ marginLeft: "8px" }}>
+            View Details
+          </button>
         </div>
       ))}
     </div>

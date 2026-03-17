@@ -9,6 +9,9 @@ export type Event = {
   info: string;
   organizerId: string;
   studentDiscount: boolean;
+  soldCount?: number;
+  revenue?: number;
+  sales?: TicketSale[];
 };
 
 export type Ticket = {
@@ -16,8 +19,19 @@ export type Ticket = {
   code: string;
   eventId: string;
   userId: string;
+  purchasePrice: number;
+  discountApplied: boolean;
   createdAt: string;
   event?: Event;
+};
+
+export type TicketSale = {
+  id: string;
+  code: string;
+  purchasedAt: string;
+  purchasePrice: number;
+  discountApplied: boolean;
+  buyerUsername: string;
 };
 
 export type Document = {
