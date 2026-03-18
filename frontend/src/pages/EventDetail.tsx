@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api, { API_URL } from "../lib/api";
 import type { Event } from "../types";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
@@ -21,8 +21,8 @@ export default function EventDetail() {
     if (!id) return;
 
     setLoading(true);
-    axios
-      .get(`http://localhost:4000/events/${id}`)
+    api
+      .get(`/events/${id}`)
       .then((res) => setEvent(res.data))
       .catch(() => setEvent(null))
       .finally(() => setLoading(false));
@@ -37,7 +37,7 @@ export default function EventDetail() {
     }
 
     setCheckingDocuments(true);
-    fetch("http://localhost:4000/documents/my", {
+    fetch(`${API_URL}/documents/my`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => (res.ok ? res.json() : []))
@@ -60,8 +60,8 @@ export default function EventDetail() {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await axios.post(
-        `http://localhost:4000/events/${id}/buy`,
+      const res = await api.post(
+        `/events/${id}/buy`,
         { useStudentDiscount },
         { headers: { Authorization: `Bearer ${token}` } }
       );

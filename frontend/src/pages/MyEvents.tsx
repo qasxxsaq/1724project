@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../lib/api";
 import type { Event, TicketSale } from "../types";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
@@ -24,8 +24,8 @@ export default function MyEvents() {
   const loadEvents = useCallback(() => {
     const token = localStorage.getItem("token");
     setLoading(true);
-    axios
-      .get("http://localhost:4000/events/my", {
+    api
+      .get("/events/my", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -57,7 +57,7 @@ export default function MyEvents() {
     const token = localStorage.getItem("token");
 
     try {
-      await axios.delete(`http://localhost:4000/events/${id}`, {
+      await api.delete(`/events/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -76,8 +76,8 @@ export default function MyEvents() {
     }
 
     try {
-      const response = await axios.get(
-        `http://localhost:4000/documents/${sale.studentDocument.id}/download`,
+      const response = await api.get(
+        `/documents/${sale.studentDocument.id}/download`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

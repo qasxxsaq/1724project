@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../lib/api";
 import type { Event } from "../types";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
@@ -23,8 +23,8 @@ export default function EditEvent() {
 
   useEffect(() => {
     if (!id) return;
-    axios
-      .get(`http://localhost:4000/events/${id}`)
+    api
+      .get(`/events/${id}`)
       .then((res) => {
         const found = res.data as Event;
         const userId = localStorage.getItem("userId");
@@ -85,8 +85,8 @@ export default function EditEvent() {
     }
 
     try {
-      await axios.put(
-        `http://localhost:4000/events/${id}`,
+      await api.put(
+        `/events/${id}`,
         { title, location, date, time, price, ticketsLeft, info, studentDiscount },
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
@@ -7,7 +8,9 @@ import ticketRoutes from "./routes/tickets";
 import documentRoutes from "./routes/documents";
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "*",
+}));
 app.use(bodyParser.json());
 
 app.use("/auth", authRoutes);
@@ -15,5 +18,6 @@ app.use("/events", eventRoutes);
 app.use("/tickets", ticketRoutes);
 app.use("/documents", documentRoutes);
 
-app.listen(4000, () => console.log("Server running on http://localhost:4000"));
+const port = process.env.PORT || 4000;
+app.listen(port, () => console.log(`Server running on port ${port}`));
 

@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../lib/api";
 import QRCode from "qrcode";
 import type { Ticket } from "../types";
 import { Button } from "../components/ui/button";
@@ -26,8 +26,8 @@ export default function TicketDetail() {
       return;
     }
 
-    axios
-      .get(`http://localhost:4000/tickets/${id}`, {
+    api
+      .get(`/tickets/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setTicket(res.data))
@@ -57,8 +57,8 @@ export default function TicketDetail() {
     }
 
     try {
-      const response = await axios.get(
-        `http://localhost:4000/documents/${ticket.studentDocument.id}/download`,
+      const response = await api.get(
+        `/documents/${ticket.studentDocument.id}/download`,
         {
           headers: { Authorization: `Bearer ${token}` },
           responseType: "blob",
@@ -91,8 +91,8 @@ export default function TicketDetail() {
     }
 
     try {
-      const response = await axios.get(
-        `http://localhost:4000/documents/${ticket.studentDocument.id}/download`,
+      const response = await api.get(
+        `/documents/${ticket.studentDocument.id}/download`,
         {
           headers: { Authorization: `Bearer ${token}` },
           responseType: "blob",
@@ -124,8 +124,8 @@ export default function TicketDetail() {
 
     try {
       setApproving(true);
-      await axios.post(
-        `http://localhost:4000/tickets/${ticket.id}/review/approve`,
+      await api.post(
+        `/tickets/${ticket.id}/review/approve`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },

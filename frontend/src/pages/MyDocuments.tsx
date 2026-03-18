@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect } from "react";
+import { API_URL } from "../lib/api";
 import { Document } from "../types";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
@@ -21,7 +22,7 @@ const MyDocuments: React.FC = () => {
     if (!token) return;
 
     try {
-      const response = await fetch("http://localhost:4000/documents/my", {
+      const response = await fetch(`${API_URL}/documents/my`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
@@ -46,7 +47,7 @@ const MyDocuments: React.FC = () => {
     formData.append("type", type);
 
     try {
-      const response = await fetch("http://localhost:4000/documents/upload", {
+      const response = await fetch(`${API_URL}/documents/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -70,7 +71,7 @@ const MyDocuments: React.FC = () => {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:4000/documents/${id}`, {
+      const response = await fetch(`${API_URL}/documents/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -87,7 +88,7 @@ const MyDocuments: React.FC = () => {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:4000/documents/${doc.id}/download`, {
+      const response = await fetch(`${API_URL}/documents/${doc.id}/download`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
@@ -110,7 +111,7 @@ const MyDocuments: React.FC = () => {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:4000/documents/${doc.id}/download`, {
+      const response = await fetch(`${API_URL}/documents/${doc.id}/download`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {

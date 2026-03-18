@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../lib/api";
 import QRCode from "qrcode";
 import type { Ticket } from "../types";
 import { Button } from "../components/ui/button";
@@ -25,8 +25,8 @@ export default function MyTickets() {
     setLoading(true);
     setError(null);
 
-    axios
-      .get("http://localhost:4000/tickets/my", {
+    api
+      .get("/tickets/my", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {

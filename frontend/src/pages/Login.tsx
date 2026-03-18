@@ -1,6 +1,6 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../lib/api";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -15,7 +15,7 @@ export default function Login() {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:4000/auth/login", { username, password });
+      const res = await api.post("/auth/login", { username, password });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
       localStorage.setItem("userId", res.data.userId || "");

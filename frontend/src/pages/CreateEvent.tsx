@@ -1,6 +1,6 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../lib/api";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -78,8 +78,8 @@ export default function CreateEvent() {
     }
 
     try {
-      await axios.post(
-        "http://localhost:4000/events",
+      await api.post(
+        "/events",
         { title, location, date, time, price, ticketsLeft, info, studentDiscount },
         { headers: { Authorization: `Bearer ${token}` } }
       );

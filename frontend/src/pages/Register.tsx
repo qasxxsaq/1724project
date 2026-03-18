@@ -1,6 +1,6 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../lib/api";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -16,7 +16,7 @@ export default function Register() {
   const handleRegister = async () => {
     setLoading(true);
     try {
-      await axios.post("http://localhost:4000/auth/register", { username, password, role });
+      await api.post("/auth/register", { username, password, role });
       alert("Registration successful! Please login.");
       navigate("/login");
     } catch (err: any) {

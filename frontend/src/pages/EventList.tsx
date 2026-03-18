@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import api from "../lib/api";
 import type { Event } from "../types";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -18,7 +18,7 @@ export default function EventList() {
   const [maxPrice, setMaxPrice] = useState("");
   const [onlySoonAvailable, setOnlySoonAvailable] = useState(false);
   useEffect(() => {
-    axios.get("http://localhost:4000/events").then((res) => setEvents(res.data));
+    api.get("/events").then((res) => setEvents(res.data));
   }, []);
 
   const role = localStorage.getItem("role");
