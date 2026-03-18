@@ -8,7 +8,7 @@ const router = express.Router();
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
-  throw new Error("JWT_SECRET is not set");
+  console.error("WARNING: JWT_SECRET is not set. Auth will not work.");
 }
 
 router.post("/register", async (req, res) => {
@@ -31,6 +31,8 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
+    if (!SECRET) return res.status(500).send("Server misconfigured");
+
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).send("Missing fields");
 

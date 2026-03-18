@@ -12,4 +12,4 @@ RUN npx prisma generate && npx tsc
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy || echo 'Migration warning: deploy failed, continuing...'; node dist/index.js"]
