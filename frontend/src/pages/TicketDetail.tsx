@@ -15,6 +15,7 @@ export default function TicketDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [approving, setApproving] = useState(false);
+  const [viewBlob, setViewBlob] = useState<string | null>(null);
   const role = localStorage.getItem("role");
 
   useEffect(() => {
@@ -64,7 +65,13 @@ export default function TicketDetail() {
         }
       );
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const fileBlob =
+        response.data instanceof Blob
+          ? response.data
+          : new Blob([response.data], {
+              type: ticket.studentDocument.mimetype || "application/octet-stream",
+            });
+      const url = window.URL.createObjectURL(fileBlob);
       const link = document.createElement("a");
       link.href = url;
       link.download = ticket.studentDocument.originalName || "student-proof";
@@ -74,6 +81,40 @@ export default function TicketDetail() {
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
       alert(err.response?.data || "Failed to download student proof.");
+    }
+  };
+
+  const viewStudentProof = async () => {
+    const token = localStorage.getItem("token");
+    if (!token || !ticket?.studentDocument) {
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:4000/documents/${ticket.studentDocument.id}/download`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        }
+      );
+
+      const fileBlob =
+        response.data instanceof Blob
+          ? response.data
+          : new Blob([response.data], {
+              type: ticket.studentDocument.mimetype || "application/octet-stream",
+            });
+      const url = window.URL.createObjectURL(fileBlob);
+      const mimeType = fileBlob.type || ticket.studentDocument.mimetype || "";
+
+      if (mimeType.startsWith("image/")) {
+        setViewBlob(url);
+      } else {
+        window.open(url, "_blank");
+      }
+    } catch (err: any) {
+      alert(err.response?.data || "Failed to view student proof.");
     }
   };
 
@@ -171,6 +212,9 @@ export default function TicketDetail() {
                 <Button variant="outline" onClick={downloadStudentProof}>
                   Download student proof
                 </Button>
+                <Button variant="secondary" onClick={viewStudentProof}>
+                  View student proof
+                </Button>
                 {ticket.discountReviewStatus === "pending" ? (
                   <Button onClick={approveDiscount} disabled={approving}>
                     {approving ? "Approving..." : "Approve student discount"}
@@ -210,6 +254,37 @@ export default function TicketDetail() {
           </Button>
         </CardContent>
       </Card>
+
+      {ticket?.studentDocument && viewBlob ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="relative w-full max-w-3xl overflow-auto rounded-2xl bg-white p-6 shadow-lg">
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="text-lg font-semibold text-slate-900">
+                {ticket.studentDocument.originalName || "Student proof"}
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setViewBlob((current) => {
+                    if (current) {
+                      URL.revokeObjectURL(current);
+                    }
+                    return null;
+                  });
+                }}
+              >
+                Close
+              </Button>
+            </div>
+            <img
+              src={viewBlob}
+              alt={ticket.studentDocument.originalName || "Student proof"}
+              className="mt-4 w-full rounded-xl border border-slate-200"
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

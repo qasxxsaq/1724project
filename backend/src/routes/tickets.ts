@@ -29,6 +29,7 @@ type TicketRow = {
   eventStudentDiscount: boolean;
   studentDocumentId?: string | null;
   studentDocumentName?: string | null;
+  studentDocumentMimetype?: string | null;
   studentDocumentUploadedAt?: Date | null;
 };
 
@@ -42,10 +43,11 @@ const mapTicketRow = (row: TicketRow) => ({
   discountReviewStatus: row.discountReviewStatus ?? undefined,
   createdAt: row.createdAt,
   buyerUsername: row.buyerUsername ?? undefined,
-  studentDocument: row.studentDocumentId
+      studentDocument: row.studentDocumentId
     ? {
         id: row.studentDocumentId,
         originalName: row.studentDocumentName ?? null,
+        mimetype: row.studentDocumentMimetype ?? null,
         uploadedAt: row.studentDocumentUploadedAt ?? null,
       }
     : undefined,
@@ -126,12 +128,13 @@ router.get("/:id", authMiddleware, async (req: Request, res: Response) => {
         e."studentDiscount" AS "eventStudentDiscount",
         d.id AS "studentDocumentId",
         d."originalName" AS "studentDocumentName",
+        d.mimetype AS "studentDocumentMimetype",
         d."uploadedAt" AS "studentDocumentUploadedAt"
       FROM "Ticket" t
       JOIN "Event" e ON e.id = t."eventId"
       JOIN "User" u ON u.id = t."userId"
       LEFT JOIN LATERAL (
-        SELECT d.id, d."originalName", d."uploadedAt"
+        SELECT d.id, d."originalName", d.mimetype, d."uploadedAt"
         FROM "Document" d
         WHERE d."userId" = t."userId"
           AND d.type = 'student_id'

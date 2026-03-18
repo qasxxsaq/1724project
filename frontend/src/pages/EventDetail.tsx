@@ -11,6 +11,11 @@ export default function EventDetail() {
   const navigate = useNavigate();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
+  const [checkingDocuments, setCheckingDocuments] = useState(false);
+  const [hasStudentId, setHasStudentId] = useState(false);
+  const [useStudentDiscount, setUseStudentDiscount] = useState(false);
+  const role = localStorage.getItem("role");
+  const userId = localStorage.getItem("userId");
 
   useEffect(() => {
     if (!id) return;
@@ -23,6 +28,33 @@ export default function EventDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (role !== "customer" || !event?.studentDiscount || !token) {
+      setHasStudentId(false);
+      setUseStudentDiscount(false);
+      return;
+    }
+
+    setCheckingDocuments(true);
+    fetch("http://localhost:4000/documents/my", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((documents) => {
+        const uploaded = Array.isArray(documents) && documents.some((doc) => doc.type === "student_id");
+        setHasStudentId(uploaded);
+        if (!uploaded) {
+          setUseStudentDiscount(false);
+        }
+      })
+      .catch(() => {
+        setHasStudentId(false);
+        setUseStudentDiscount(false);
+      })
+      .finally(() => setCheckingDocuments(false));
+  }, [event?.studentDiscount, role]);
+
   const buy = async () => {
     if (!id) return;
     const token = localStorage.getItem("token");
@@ -30,7 +62,7 @@ export default function EventDetail() {
     try {
       const res = await axios.post(
         `http://localhost:4000/events/${id}/buy`,
-        {},
+        { useStudentDiscount },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -55,11 +87,10 @@ export default function EventDetail() {
     return <p className="text-sm text-slate-600">Event not found.</p>;
   }
 
-  const role = localStorage.getItem("role");
-  const userId = localStorage.getItem("userId");
   const eventDateTime = new Date(`${event.date}T${event.time}`);
   const isPastEvent = !Number.isNaN(eventDateTime.getTime()) && eventDateTime <= new Date();
   const canEdit = role === "organizer" && userId && userId === event.organizerId && !isPastEvent;
+  const discountedPrice = Math.floor(event.price * 0.8);
 
   return (
     <div className="grid gap-6">
@@ -111,6 +142,43 @@ export default function EventDetail() {
             <p className="text-sm text-slate-500">Description</p>
             <p className="text-sm text-slate-700">{event.info}</p>
           </div>
+
+          {role === "customer" && event.studentDiscount ? (
+            <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="grid gap-1">
+                <p className="text-sm font-medium text-slate-900">Ticket option</p>
+                <p className="text-sm text-slate-600">
+                  Regular: ${event.price.toFixed(2)} | Student discount: ${discountedPrice.toFixed(2)}
+                </p>
+              </div>
+
+              <label className="flex items-start gap-3 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 rounded border-input bg-background text-indigo-500 focus:ring-indigo-500"
+                  checked={useStudentDiscount}
+                  onChange={(e) => setUseStudentDiscount(e.target.checked)}
+                  disabled={!hasStudentId || checkingDocuments}
+                />
+                <span>
+                  Use student discount for this purchase
+                  {!checkingDocuments && !hasStudentId ? (
+                    <span className="mt-1 block text-amber-700">
+                      Upload your student ID in My Documents before selecting this option.
+                    </span>
+                  ) : null}
+                </span>
+              </label>
+
+              {!checkingDocuments && !hasStudentId ? (
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="outline" onClick={() => navigate("/documents")}>
+                    Upload student ID
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="flex flex-wrap gap-3">
             {role === "customer" && (

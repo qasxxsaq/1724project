@@ -1,31 +1,15 @@
 import "dotenv/config";
 import express from "express";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
 import type { Request, Response } from "express";
 import { Prisma } from "../generated/prisma/client";
 import { prisma } from "../prisma";
 import { authMiddleware } from "../middleware/auth";
+import { uploadDocument, downloadDocument, deleteDocumentFile } from "../services/documentStorage";
 
 const router = express.Router();
 
-const uploadsDir = path.join(__dirname, "../../uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
-  },
-});
-
-const upload = multer({ storage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/upload", authMiddleware, upload.single("document"), async (req: Request & { file?: Express.Multer.File }, res: Response) => {
   const user = req.user;
@@ -33,13 +17,20 @@ router.post("/upload", authMiddleware, upload.single("document"), async (req: Re
   if (!req.file) return res.status(400).send("No file uploaded");
 
   try {
+    const storedDocument = await uploadDocument({
+      originalName: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      buffer: req.file.buffer,
+    });
+
     const document = await prisma.document.create({
       data: {
-        filename: req.file.filename,
+        filename: storedDocument.filename,
         originalName: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-        path: req.file.path,
+        mimetype: storedDocument.mimetype,
+        size: storedDocument.size,
+        path: storedDocument.path,
         type: req.body.type || "general",
         userId: user.id,
       },
@@ -75,6 +66,11 @@ router.delete("/:id", authMiddleware, async (req: Request, res: Response) => {
     });
     if (!document) return res.status(404).send("Document not found");
     if (document.userId !== user.id) return res.status(403).send("Forbidden");
+
+    await deleteDocumentFile({
+      path: document.path,
+      filename: document.filename,
+    });
 
     await prisma.document.delete({
       where: { id: req.params.id },
@@ -115,7 +111,19 @@ router.get("/:id/download", authMiddleware, async (req: Request, res: Response) 
       if (!organizerAccess) return res.status(403).send("Forbidden");
     }
 
-    res.download(document.path, document.originalName);
+    const file = await downloadDocument({
+      path: document.path,
+      filename: document.filename,
+      originalName: document.originalName,
+      mimetype: document.mimetype,
+    });
+
+    res.setHeader("Content-Type", file.mimetype);
+    res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(file.filename)}"`);
+    if (file.size !== undefined) {
+      res.setHeader("Content-Length", String(file.size));
+    }
+    file.stream.pipe(res);
   } catch (error) {
     console.error(error);
     res.status(500).send("Server error");

@@ -181,16 +181,24 @@ router.post("/:id/buy", authMiddleware, async (req: Request, res: Response) => {
     const event = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!event) return res.status(404).send("Event not found");
 
+    const useStudentDiscount = req.body?.useStudentDiscount === true;
     let discountApplied = false;
     let finalPrice = event.price;
-    if (event.studentDiscount) {
+    if (useStudentDiscount) {
+      if (!event.studentDiscount) {
+        return res.status(400).send("This event does not offer student discount");
+      }
+
       const studentDoc = await prisma.document.findFirst({
         where: { userId: user.id, type: "student_id" },
       });
-      if (studentDoc) {
-        finalPrice = Math.floor(event.price * 0.8); // 20% discount
-        discountApplied = true;
+
+      if (!studentDoc) {
+        return res.status(400).send("Please upload your student ID before using student discount");
       }
+
+      finalPrice = Math.floor(event.price * 0.8);
+      discountApplied = true;
     }
 
     const updateResult = await prisma.event.updateMany({

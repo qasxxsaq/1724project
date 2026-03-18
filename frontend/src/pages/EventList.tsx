@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import type { Event } from "../types";
 import { Button } from "../components/ui/button";
@@ -17,26 +17,9 @@ export default function EventList() {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [onlySoonAvailable, setOnlySoonAvailable] = useState(false);
-  const navigate = useNavigate();
-
   useEffect(() => {
     axios.get("http://localhost:4000/events").then((res) => setEvents(res.data));
   }, []);
-
-  const buyTicket = (id: string) => {
-    const token = localStorage.getItem("token");
-    axios
-      .post(
-        `http://localhost:4000/events/${id}/buy`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then((res) => {
-        alert(res.data.message);
-        navigate("/tickets");
-      })
-      .catch((err) => alert(err.response?.data || "Purchase failed."));
-  };
 
   const role = localStorage.getItem("role");
   const normalizedSearch = search.trim().toLowerCase();
@@ -225,14 +208,15 @@ export default function EventList() {
                     <Link to={`/events/${e.id}`}>View details</Link>
                   </Button>
                   {role === "customer" && (
-                    <Button
-                      size="sm"
-                      disabled={isSoldOut}
-                      onClick={() => buyTicket(e.id)}
-                      variant={isSoldOut ? "outline" : "default"}
-                    >
-                      {isSoldOut ? "Sold out" : "Buy ticket"}
-                    </Button>
+                    isSoldOut ? (
+                      <Button size="sm" variant="outline" disabled>
+                        Sold out
+                      </Button>
+                    ) : (
+                      <Button asChild size="sm">
+                        <Link to={`/events/${e.id}`}>Buy ticket</Link>
+                      </Button>
+                    )
                   )}
                 </div>
               </Card>

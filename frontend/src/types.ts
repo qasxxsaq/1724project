@@ -27,6 +27,7 @@ export type Ticket = {
   studentDocument?: {
     id: string;
     originalName: string | null;
+    mimetype?: string | null;
     uploadedAt: string | Date | null;
   };
   event?: Event;
@@ -44,6 +45,7 @@ export type TicketSale = {
   studentDocument?: {
     id: string;
     originalName: string | null;
+    mimetype?: string | null;
     uploadedAt: string | Date | null;
   };
 };
