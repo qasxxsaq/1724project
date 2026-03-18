@@ -13,6 +13,9 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 
+app.get("/", (_req, res) => { res.send("ok"); });
+app.get("/health", (_req, res) => { res.status(200).json({ status: "ok" }); });
+
 app.use("/auth", authRoutes);
 app.use("/events", eventRoutes);
 app.use("/tickets", ticketRoutes);
