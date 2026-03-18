@@ -1,11 +1,8 @@
 [build]
-builder = "nixpacks"
-
-[build.nixpacks]
-nixPkgs = ["nodejs_22"]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "npx prisma db push && node dist/index.js"
 healthcheckPath = "/"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
