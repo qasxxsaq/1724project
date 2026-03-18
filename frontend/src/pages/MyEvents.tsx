@@ -30,7 +30,7 @@ export default function MyEvents() {
           Authorization: `Bearer ${token}`,
         },
       })
-      .then((res) => setEvents(res.data))
+      .then((res) => setEvents(Array.isArray(res.data) ? res.data : []))
       .catch((err) => {
         console.error(err);
         alert(err.response?.data || "Failed to load my events");

@@ -18,7 +18,9 @@ export default function EventList() {
   const [maxPrice, setMaxPrice] = useState("");
   const [onlySoonAvailable, setOnlySoonAvailable] = useState(false);
   useEffect(() => {
-    api.get("/events").then((res) => setEvents(res.data));
+    api.get("/events").then((res) => {
+      setEvents(Array.isArray(res.data) ? res.data : []);
+    }).catch((err) => console.error("Failed to load events", err));
   }, []);
 
   const role = localStorage.getItem("role");
