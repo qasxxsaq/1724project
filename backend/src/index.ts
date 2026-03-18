@@ -13,7 +13,7 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 
-app.get("/", (_req, res) => { res.send("ok"); });
+// Endpoint for deployment health check
 app.get("/health", (_req, res) => { res.status(200).json({ status: "ok" }); });
 
 app.use("/auth", authRoutes);
