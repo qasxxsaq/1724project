@@ -6,7 +6,7 @@ import type { AuthenticatedRequest, JwtUserPayload, UserRole } from "../types/au
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
-  console.error("WARNING: JWT_SECRET is not set. Auth will not work.");
+  throw new Error("JWT_SECRET is not set");
 }
 
 const isUserRole = (role: unknown): role is UserRole => {
@@ -22,8 +22,6 @@ const isJwtUserPayload = (value: string | jwt.JwtPayload): value is JwtUserPaylo
 };
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  if (!SECRET) return res.status(500).send("Server misconfigured");
-
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).send("No token");
 

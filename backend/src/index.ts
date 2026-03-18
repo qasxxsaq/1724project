@@ -22,6 +22,5 @@ app.use("/tickets", ticketRoutes);
 app.use("/documents", documentRoutes);
 
 const port = process.env.PORT || 4000;
-app.listen(port, () => console.log(`Server running on port ${port}`))
-  .on("error", (err) => console.error("Failed to start server:", err));
+app.listen(port, () => console.log(`Server running on port ${port}`));
 
