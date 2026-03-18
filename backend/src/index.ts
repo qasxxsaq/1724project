@@ -22,5 +22,5 @@ app.use("/tickets", ticketRoutes);
 app.use("/documents", documentRoutes);
 
 const port = process.env.PORT || 4000;
-app.listen(port, () => console.log(`Server running on port ${port}`));
+app.listen(port, "0.0.0.0", () => console.log(`Server running on port ${port}`));
 
