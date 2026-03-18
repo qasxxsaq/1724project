@@ -16,9 +16,14 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await api.post("/auth/login", { username, password });
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.role);
-      localStorage.setItem("userId", res.data.userId || "");
+      const { token, role, userId } = res.data ?? {};
+      if (!token || !role) {
+        alert("Login failed: unexpected server response. Check API configuration.");
+        return;
+      }
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
+      localStorage.setItem("userId", userId || "");
       navigate("/events");
     } catch (err: any) {
       alert(err.response?.data || "Login failed");

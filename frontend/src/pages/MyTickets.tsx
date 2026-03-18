@@ -30,7 +30,7 @@ export default function MyTickets() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        setTickets(res.data || []);
+        setTickets(Array.isArray(res.data) ? res.data : []);
       })
       .catch((e) => {
         setError(e.response?.data || "Failed to load tickets.");

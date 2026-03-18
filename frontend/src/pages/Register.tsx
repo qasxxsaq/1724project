@@ -16,7 +16,11 @@ export default function Register() {
   const handleRegister = async () => {
     setLoading(true);
     try {
-      await api.post("/auth/register", { username, password, role });
+      const res = await api.post("/auth/register", { username, password, role });
+      if (!res.data?.message) {
+        alert("Registration failed: unexpected server response. Check API configuration.");
+        return;
+      }
       alert("Registration successful! Please login.");
       navigate("/login");
     } catch (err: any) {
