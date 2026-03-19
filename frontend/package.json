@@ -13,6 +13,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.14.2",
     "serve": "^14.2.4",
+    "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {

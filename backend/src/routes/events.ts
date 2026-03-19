@@ -5,6 +5,7 @@ import type { Request, Response } from "express";
 import { Prisma } from "../generated/prisma/client";
 import { prisma } from "../prisma";
 import { authMiddleware } from "../middleware/auth";
+import { getIO } from "../socket";
 
 const router = express.Router();
 
@@ -165,6 +166,7 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
       },
     });
     console.log('Created event organizerId', event.organizerId, 'id', event.id);
+    getIO().emit("newEvent", event);
     res.json(event);
   } catch (error) {
     console.error(error);
@@ -214,6 +216,9 @@ router.post("/:id/buy", authMiddleware, async (req: Request, res: Response) => {
     if (updateResult.count === 0) {
       return res.status(400).send("Sold out");
     }
+
+    const updatedEvent = await prisma.event.findUnique({ where: { id: req.params.id } });
+    if (updatedEvent) getIO().emit("eventUpdated", updatedEvent);
 
     const ticketId = crypto.randomUUID();
     const discountReviewStatus = discountApplied ? "pending" : null;
@@ -291,6 +296,7 @@ router.put("/:id", authMiddleware, async (req: Request, res: Response) => {
         studentDiscount: studentDiscount !== undefined ? studentDiscount : exists.studentDiscount,
       },
     });
+    getIO().emit("eventUpdated", updated);
     res.json(updated);
   } catch (error) {
     console.error(error);
@@ -310,6 +316,7 @@ router.delete("/:id", authMiddleware, async (req: Request, res: Response) => {
     if (!event) return res.status(404).send("Event not found");
 
     await prisma.event.delete({ where: { id: req.params.id } });
+    getIO().emit("eventDeleted", { id: req.params.id, title: event.title });
     res.json({ message: "Event deleted" });
   } catch (error) {
     console.error(error);

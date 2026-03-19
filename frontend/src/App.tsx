@@ -13,12 +13,14 @@ import MyDocuments from "./pages/MyDocuments";
 import TicketDetail from "./pages/TicketDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Container } from "./components/Container";
+import EventNotifications from "./components/EventNotifications";
 
 export default function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-background text-foreground">
         <Navbar />
+        <EventNotifications />
         <Container>
           <Routes>
             <Route path="/" element={<Home />} />

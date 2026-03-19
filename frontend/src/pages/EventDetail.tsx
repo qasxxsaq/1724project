@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api, { API_URL } from "../lib/api";
+import { getSocket } from "../lib/socket";
 import type { Event } from "../types";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
@@ -26,6 +27,26 @@ export default function EventDetail() {
       .then((res) => setEvent(res.data))
       .catch(() => setEvent(null))
       .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    const socket = getSocket();
+    const onUpdated = (updated: Event) => {
+      if (updated.id === id) setEvent(updated);
+    };
+    const onDeleted = ({ id: deletedId }: { id: string }) => {
+      if (deletedId === id) {
+        setEvent(null);
+        setLoading(false);
+      }
+    };
+    socket.on("eventUpdated", onUpdated);
+    socket.on("eventDeleted", onDeleted);
+    return () => {
+      socket.off("eventUpdated", onUpdated);
+      socket.off("eventDeleted", onDeleted);
+    };
   }, [id]);
 
   useEffect(() => {

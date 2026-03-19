@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../lib/api";
+import { getSocket } from "../lib/socket";
 import type { Event } from "../types";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -21,6 +22,30 @@ export default function EventList() {
     api.get("/events").then((res) => {
       setEvents(Array.isArray(res.data) ? res.data : []);
     }).catch((err) => console.error("Failed to load events", err));
+  }, []);
+
+  useEffect(() => {
+    const socket = getSocket();
+    const onNew = (event: Event) => {
+      setEvents((prev) => {
+        if (prev.some((e) => e.id === event.id)) return prev;
+        return [...prev, event];
+      });
+    };
+    const onUpdated = (event: Event) => {
+      setEvents((prev) => prev.map((e) => (e.id === event.id ? event : e)));
+    };
+    const onDeleted = ({ id }: { id: string }) => {
+      setEvents((prev) => prev.filter((e) => e.id !== id));
+    };
+    socket.on("newEvent", onNew);
+    socket.on("eventUpdated", onUpdated);
+    socket.on("eventDeleted", onDeleted);
+    return () => {
+      socket.off("newEvent", onNew);
+      socket.off("eventUpdated", onUpdated);
+      socket.off("eventDeleted", onDeleted);
+    };
   }, []);
 
   const role = localStorage.getItem("role");
