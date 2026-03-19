@@ -27,5 +27,8 @@ app.use("/tickets", ticketRoutes);
 app.use("/documents", documentRoutes);
 
 const port = Number(process.env.PORT) || 4000;
-httpServer.listen(port, "0.0.0.0", () => console.log(`Server running on port ${port}`));
+httpServer.listen(port, "0.0.0.0", () => {
+  console.log(`Server running on port ${port}`);
+  console.log(`Storage provider: ${process.env.STORAGE_PROVIDER || "local (default)"}`);
+});
 

@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
@@ -27,26 +27,30 @@ type DownloadResult = {
 };
 
 const uploadsDir = path.join(__dirname, "../../uploads");
-const provider = process.env.STORAGE_PROVIDER?.toLowerCase() || "local";
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabaseBucket = process.env.SUPABASE_STORAGE_BUCKET;
 
-const hasSupabaseConfig = Boolean(
-  supabaseUrl &&
-  supabaseServiceRoleKey &&
-  supabaseBucket
-);
+const getProvider = () => process.env.STORAGE_PROVIDER?.toLowerCase() || "local";
 
-const supabase =
-  provider === "supabase" && hasSupabaseConfig
-    ? createClient(supabaseUrl!, supabaseServiceRoleKey!, {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-        },
-      })
-    : null;
+let _supabase: SupabaseClient | null = null;
+
+const getSupabase = (): { client: SupabaseClient; bucket: string } => {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const bucket = process.env.SUPABASE_STORAGE_BUCKET;
+
+  if (!url || !key || !bucket) {
+    throw new Error(
+      `Supabase storage is not fully configured (URL=${!!url}, KEY=${!!key}, BUCKET=${!!bucket})`
+    );
+  }
+
+  if (!_supabase) {
+    _supabase = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  }
+
+  return { client: _supabase, bucket };
+};
 
 const ensureUploadsDir = async () => {
   await fs.promises.mkdir(uploadsDir, { recursive: true });
@@ -60,17 +64,17 @@ const makeStoredName = (originalName: string) => {
 export const uploadDocument = async ({ originalName, mimetype, size, buffer }: UploadInput): Promise<StoredDocument> => {
   const filename = makeStoredName(originalName);
 
-  if (provider === "supabase") {
-    if (!supabase || !supabaseBucket) {
-      throw new Error("Supabase storage is not fully configured");
-    }
+  if (getProvider() === "supabase") {
+    const { client, bucket } = getSupabase();
 
-    const { error } = await supabase.storage.from(supabaseBucket).upload(filename, buffer, {
-      contentType: mimetype,
-      upsert: false,
-    });
+    const { error } = await client.storage.from(bucket).upload(
+      filename,
+      new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength),
+      { contentType: mimetype, upsert: false },
+    );
 
     if (error) {
+      console.error("Supabase upload error:", error);
       throw error;
     }
 
@@ -105,13 +109,11 @@ export const downloadDocument = async ({
   mimetype: string;
   filename: string;
 }): Promise<DownloadResult> => {
-  if (provider === "supabase") {
-    if (!supabase || !supabaseBucket) {
-      throw new Error("Supabase storage is not fully configured");
-    }
+  if (getProvider() === "supabase") {
+    const { client, bucket } = getSupabase();
 
-    const { data, error } = await supabase.storage
-      .from(supabaseBucket)
+    const { data, error } = await client.storage
+      .from(bucket)
       .download(storedPath || filename);
 
     if (error) {
@@ -143,13 +145,11 @@ export const deleteDocumentFile = async ({
   path: string;
   filename: string;
 }) => {
-  if (provider === "supabase") {
-    if (!supabase || !supabaseBucket) {
-      throw new Error("Supabase storage is not fully configured");
-    }
+  if (getProvider() === "supabase") {
+    const { client, bucket } = getSupabase();
 
-    const { error } = await supabase.storage
-      .from(supabaseBucket)
+    const { error } = await client.storage
+      .from(bucket)
       .remove([storedPath || filename]);
 
     if (error) {
