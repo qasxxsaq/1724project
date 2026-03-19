@@ -21,9 +21,9 @@ export default function MyEvents() {
   const [onlySoonAvailable, setOnlySoonAvailable] = useState(false);
   const navigate = useNavigate();
 
-  const loadEvents = useCallback(() => {
+  const loadEvents = useCallback((showLoading = false) => {
     const token = localStorage.getItem("token");
-    setLoading(true);
+    if (showLoading) setLoading(true);
     api
       .get("/events/my", {
         headers: {
@@ -35,18 +35,18 @@ export default function MyEvents() {
         console.error(err);
         alert(err.response?.data || "Failed to load my events");
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (showLoading) setLoading(false); });
   }, []);
 
   useEffect(() => {
-    loadEvents();
+    loadEvents(true);
 
     const handler = () => {
       loadEvents();
     };
     window.addEventListener("eventsUpdated", handler);
 
-    const interval = setInterval(loadEvents, 6000);
+    const interval = setInterval(() => loadEvents(), 6000);
     return () => {
       window.removeEventListener("eventsUpdated", handler);
       clearInterval(interval);
