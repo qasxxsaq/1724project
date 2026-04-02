@@ -10,7 +10,7 @@ export default function Home() {
     <div className="grid gap-6">
       <section className="grid gap-6 md:grid-cols-2">
         <div className="space-y-4">
-          <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">Welcome to Ticketing</h1>
+          <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">Welcome to Ticketing!</h1>
           <p className="text-slate-600">
             Discover brilliant events, manage your ticket inventory, or purchase your next experience in a few clicks.
           </p>
@@ -36,24 +36,24 @@ export default function Home() {
 
         <Card className="bg-slate-50">
           <CardHeader>
-            <CardTitle>Quick tips</CardTitle>
+            <CardTitle>Quick Tips</CardTitle>
             <CardDescription>
-              Use the navigation menu to explore events, manage your listings, or see tickets and documents.
+              Discover your next experience by Browse Events! Sign In to manage your listings, or see tickets and documents.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
             <div className="flex items-start gap-3">
-              <span className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">📌</span>
+              <span className="mt-1 inline-flex h-9 w-9 shrink-0items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">📌</span>
               <div>
                 <p className="text-sm font-medium text-slate-900">Search with ease</p>
                 <p className="text-sm text-slate-600">Find events by title, location, or description using the search box.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <span className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">⚡</span>
+              <span className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">⚡</span>
               <div>
                 <p className="text-sm font-medium text-slate-900">Fast actions</p>
-                <p className="text-sm text-slate-600">Buy, edit, or upload documents with a responsive and mobile-friendly interface.</p>
+                <p className="text-sm text-slate-600">Buy tickets, manage events, or review documents with a responsive and mobile-friendly interface.</p>
               </div>
             </div>
           </CardContent>
