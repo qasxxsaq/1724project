@@ -1,7 +1,11 @@
-# Event Ticketing Application - ECE1724 Project 
+# Event Ticketing Application - ECE1724 Project  
 ## Team Information  
 Charles Yu 1006718348 charlesyuzq.yu@mail.utoronto.ca  
 Yuchen Xu 1006708779 yuchenzoe.xu@mail.utoronto.ca  
+
+## Demo 
+[video]\(link\)  
+Try the app live at: [Event Ticketing Application](https://frontend-production-9b35.up.railway.app/)
 
 ## Motivation
 Many small and medium-sized student organizations such as campus clubs rely on Google Forms, spreadsheets or emails to manage event registration. When identity verification, event payment processing, or ticket validation are required, significant manual effort is typically involved. Organizers need to verify tickets, track approvals and distribute tickets separately. As a result, the process of recording and organizing event registration and participation data becomes time-consuming and error-prone. Additionally, real-time attendance tracking and fraud prevention are rarely supported in this process.
@@ -14,8 +18,8 @@ The primary target users includes:
 
 By integrating event publishing and management, ticket generation and validation into a single platform, this project demonstrates a practical and worthwhile solution that optimizes event workflows, reduces manual errors, and enhances the overall efficiency of small-scale event management. 
 
-## Objective (To be edited)
-The objective of this project is to develop an event ticketing platform, which includes an organizer mode for managing events and a customer mode for users to purchase and manage tickets. Specifically, organizers will be able to create events, monitor ticket selling status, and verify user-uploaded documents for discounts. Customers will be able to register/login, view event information, make purchases, upload documents and receive their downloadable tickets (a QR code with other information).  
+## Objective
+The objective of this project is to develop an event ticketing platform, which includes an organizer mode for creating events and a customer mode for users to purchase tickets and receive downloadable QR codes. Specifically, organizers should be able to create events, monitor ticket selling status, and verify user-uploaded documents for discounts. Customers should be able to register/login, view event information, make purchases, upload documents and receive their downloadable tickets (a QR code with other information).  
 
 ## Technical Stack
 ### Implementation approach:
@@ -230,14 +234,14 @@ The frontend should start on: http://localhost:5173.
 
 ### 8. (Optional) Deployment guide: 
 If you also want to deploy the app, here is an example setup using Railway, used by the team.
-- Create a new project and add 3 services, frontend (hosted from the /frontend folder from GitHub), backend (the /backend folder), and PostgreSQL database.
-- Configure backend service variables. E.g. The .env variables in local development and `DATABASE_URL` from the database service.
-- Configure frontend service variables. There is just one to configure:
+1. Create a new project and add 3 services, frontend (hosted from the /frontend folder from GitHub), backend (the /backend folder), and PostgreSQL database.
+2. Configure backend service variables. E.g. The .env variables in local development and `DATABASE_URL` from the database service.
+3. Configure frontend service variables. There is just one to configure:
 `VITE_API_URL=the backend service url`
-- Set Public Networking for the frontend. Be careful of the port number (using the default should be fine).
+4. Set Public Networking for the frontend. Be careful of the port number (using the default should be fine).
 
-## Deploymeny Information
-The application is deployed on Railway. It is available at: frontend-production-9b35.up.railway.app. 
+## Deployment Information
+The application is deployed on Railway. It is available at: [frontend-production-9b35.up.railway.app](https://frontend-production-9b35.up.railway.app/)  
 
 ## AI Assistance & Verification
 We used AI tools mainly in the three areas: System design, debugging and conceptual / technical understanding. 
