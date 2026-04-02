@@ -230,11 +230,11 @@ The frontend should start on: http://localhost:5173.
 
 ### 8. (Optional) Deployment guide: 
 If you also want to deploy the app, here is an example setup using Railway, used by the team.
-- Create a new project and add 3 services, frontend (hosted from the /frontend folder from GitHub), backend (the /backend folder), and PostgreSQL database.
-- Configure backend service variables. E.g. The .env variables in local development and `DATABASE_URL` from the database service.
-- Configure frontend service variables. There is just one to configure:
+1. Create a new project and add 3 services, frontend (hosted from the /frontend folder from GitHub), backend (the /backend folder), and PostgreSQL database.
+2. Configure backend service variables. E.g. The .env variables in local development and `DATABASE_URL` from the database service.
+3. Configure frontend service variables. There is just one to configure:
 `VITE_API_URL=the backend service url`
-- Set Public Networking for the frontend. Be careful of the port number (using the default should be fine).
+4. Set Public Networking for the frontend. Be careful of the port number (using the default should be fine).
 
 ## Deploymeny Information
 The application is deployed on Railway. It is available at: frontend-production-9b35.up.railway.app. 
