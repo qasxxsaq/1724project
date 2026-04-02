@@ -108,6 +108,47 @@ Here is a summary of key features which are compliant with course requirements.
 
 These functionalities and features together form a complete and reliable system, and are sufficient to support small-scale activities such as events by student unions. Therefore, it successfully achieved our objectives.  
 
+## User Guide
+- Register: an account is required when using the app.
+  1. Click `Register` on the top right corner of the page
+  2. Enter your desired username and password
+  3. Select your intended role, customer for purchasing, organizer for selling
+- Login: enter your username and password to login.
+- Browse events: click `Events` in the top menu to view.
+- Event Filter
+  - Type in the search box or select from the dropdown menus to filter events.
+  - Click `Reset filters` to reset.
+- Live notifications and dashboard
+  - If event updates pop up, click "view" for the change.
+- Ticket purchases (Customer mode specific)
+  1. Check the discount box if you think you are qualified.
+  2. Click `Buy ticket` to purchase
+  3. If you choose the discount option, the actual QR code will be generated after an organizer verifies it.
+  4. Once the QR code is generated, click on `My Tickets` on the top menu to view and download the tickets.
+- Document uploads (Customer mode specific)  
+  1. Click `My Documents` in the top menu.
+  2. Select your document type.
+  3. Choose your file from your computer and upload.
+  4. Once uploaded, you will be able to view/download/delete your document.
+
+- Event operations (Organizer specific)
+  - Creation
+    1. Click on `Create Event` in the top menu.
+    2. Enter all required fields for event details.
+    3. Click on `Create event` at the bottom.
+  - Edit and Delete
+    1. Once events are created, you will be able to view them by clicking `My Events` in the top menu.
+    2. On My Events page, click `Delete` to delete an event. This action cannot be undone. 
+    3. On My Events page, click `Edit` to edit an event. The edit process is similar to the creation process.
+  - Monitor events
+    1. Click `View/Hide sales details` to view sales information.
+    2. On the top right corner of `My Events` page, there is also some revenue and status information. Check them there.
+- Discount verification (Organizer specific)  
+  1. Check the below to view the customers’ documents.  
+`My Events`→`View sales details` on the specific event→`View ticket details`  
+  2. View/Download proof
+  3. Approve/Reject discount.  
+
 ## Development Guide
 ### 1. Clone the repository
 Clone the project from GitHub and move into the project folder:
