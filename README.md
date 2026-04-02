@@ -3,7 +3,7 @@
 Charles Yu 1006718348 charlesyuzq.yu@mail.utoronto.ca  
 Yuchen Xu 1006708779 yuchenzoe.xu@mail.utoronto.ca  
 
-## Motivation (to be edited)
+## Motivation
 Many small and medium-sized student organizations such as campus clubs rely on Google Forms, spreadsheets or emails to manage event registration. When identity verification, event payment processing, or ticket validation are required, significant manual effort is typically involved. Organizers need to verify tickets, track approvals and distribute tickets separately. As a result, the process of recording and organizing event registration and participation data becomes time-consuming and error-prone. Additionally, real-time attendance tracking and fraud prevention are rarely supported in this process.
 
 We aim to build a platform that provides a lightweight event and ticketing management system for small and medium-sized events that supports event publishing, identity verification, ticket generation, and ticket validation. This project is worth pursuing because event and ticket management remains inefficient and error-prone for many small or mid-sized student organizations. While there are large commercial platforms(such as Eventbrite), it is relatively complex to use them and the service fees are not low for small events. Therefore, a simple, efficient and fully featured event and ticketing management platform that reduces manual workload is in demand. 
@@ -107,67 +107,133 @@ The objective and scope of the project is achievable within the course timeframe
 
 Detailed plans and work distributions can be found in the below section: Tentative Plan.
 
-## Tentative Plan
-Our project timeline is approximately four weeks from March 1 to 28. The specific assignment of team members (A and B) will be finalized during Phase 1 after further discussion and detailed planning. We mainly divide the development process into four phases:
+## Technical Stack
 
-Phase 1: System Design & Project Setup (week 1- March 1 to 7)
-During the first phase, we will:
-- Build system architecture(A)
-- Setup development environment(A)
-- Configure Express.js backend skeleton and basic routing (A)
-- Design database schema and relationships(B)
-- Create PostgreSQL database (B)
-- Design basic UI structure for both organizer and customer mode (A&B)
-- Define REST API endpoints(A&B)
+## Features
 
-Phase 2: Core Feature Development (week 2 - March 8 to 14)
-In the second phase, we will implement the core features for both frontend and backend:
-- Authentication
-  - User registration and login feature (A)
-  - Role selection (organizer or customer) (A)
-  - Public event browsing homepage (B)
-- Organizer Event Management
-  - Organizer Home page (A)
-  - Event Creation form (B)
-  - Edit/delete event (B)
-  - Ticket sales monitoring dashboard (A)
-- Customer Ticket Purchase and Management
-  - Event detail page (A)
-  - Ticket purchase flow (including uploading student verification) (A)
-  - Ticket tracking (B)
-  - Ticket download page with QR display (B)
-- Integration
-  - Connect frontend pages with backend APIs (A&B)
+## User Guide
 
-Phase 3: Integration, Testing & Presentation Preparation (week 3 - March 15 to 21)
-During the third phase, the team focuses on system integration and improvement. Both team members will collaborate on the final testing and presentation preparation. There are the following tasks:
-- Full system integration and bug fixing (A&B)
-- Perform end-to-end testing for all user flows (A&B)
-- Prepare demo script (A&B)
-- Draft presentation slides (A&B)
+## Development Guide
+### 1. Clone the repository
+Clone the project from GitHub and move into the project folder:
+```bash
+git clone https://github.com/qasxxsaq/1724project.git
+cd 1724project
+```
 
-Phase 4: Additional Feature Development & Finalization (week 4 - March 22 to 28)
-In this final phase, the team will implement additional features and conduct final testing. At least two additional features will be guaranteed to be completed, while the remaining features will be implemented if time permits. At the same time, the final deliverables will be prepared collaboratively by the team members. The following additional features work division will be:
-- Additional Feature
-  - Real-Time Updates (WebSocket) (A)
-  - Email Notification for new events (B)
-- Final testing and bug fixes (A&B)
-- Prepare final report and documentation (A&B)
-- Record demo video (A&B)
+### 2. Install required software
+Before running the project locally, install the following:
+Node.js 22.12.0 or above
+npm
+PostgreSQL
 
-## Initial Independent Reasoning (Before Using AI)
-Our initial decision is to use separate frontend and backend, with React for frontend, and Express for backend with REST APIs. In this way, the frontend and backend are independent which makes the code easier to understand and maintain.This also allows a better independent development. For a team project, separating frontend and backend makes parallel work easier.
+### 3. Install project dependencies
+The project manages the frontend and backend separately.
 
-For the database, we expect to have the following relational entities stored in PostgreSQL: Users, Events, Registrations, Tickets, Student Verification. The database will be processed in the backend to ensure consistency and the frontend will primarily fetch and display data through REST APIs. The client-side state will be limited to UI interactions such as form inputs. 
+#### 3.1 Backend dependencies
+```bash
+cd backend
+npm install
+```
+#### 3.2 Frontend dependencies
+```bash
+cd frontend
+npm install
+```
 
-We will focus on building a complete workflow instead of adding many features in the beginning. Our main features include: role-based authentication (Organizer or Attendee), event creation and management, QR-based ticket generation and validation, student ID upload and verification. For additional features, we still need to decide. We will not implement real payment processing, considering the complexity of it within the limited timeline. Our aim is to build a smaller but well-integrated system instead of a larger but incomplete platform. 
+### 4. Environment setup and configuration
+The project requires environment variables for the backend and frontend.
+#### 4.1 Backend environment variables
+Create a .env file inside the backend folder.
+Example:
+```env
+DATABASE_URL="postgresql://postgres:your_password@localhost:5432/ticketing_db"
+JWT_SECRET="your_jwt_secret_here"
+# Storage mode
+STORAGE_PROVIDER=local
+```
 
-Before start, we expect the following challenges: 
-- We need to design a clean role-based authentication since organizers and attendees have different interfaces and permissions.
-- Building system architecture and designing a feasible database schema could be challenging because it is the basement of the whole project. We need to think clearly about how to coordinate frontend and backend development.
-- Secure QR validation may be a challenge because we may need to cope with multiple requests simultaneously. The backend logic needed to be carefully designed to ensure safety. 
+### 5. Database initialization
+The project uses PostgreSQL and Prisma
+#### 5.1 Create the local PostgreSQL database
+Create a new PostgreSQL database called ticket_app.
+#### 5.2 Apply Prisma migrations
+From the backend folder, run:
+```bash
+npx prisma migrate dev
+```
+If Prisma client generation is needed manually, run:
+```bash
+npx prisma generate
+```
 
-For work division, we decided to divide responsibilities by features. We will divide the main features to each team member since this would reduce fragmentation and improve consistency. Before feature implementation, we plan to jointly design the database schema, project architecture and APIs to ensure misunderstanding and inconsistency in the later phase. 
+### 6. Cloud storage configuration
+The default storage mode is set to local. For persistent cloud storage, we use Supabase Storage and you need an existing bucket in Supabase.
+Change in `backend/.env`:
+```env
+STORAGE_PROVIDER=supabase
+```
+Add in `backend/.env`:
+```env
+…Other env variables…
+SUPABASE_URL="https://your-project.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="your_service_role_key"
+SUPABASE_STORAGE_BUCKET="your_bucket_name"
+```
 
-## AI Assistance Disclosure
-We did not use AI at all in part 4 and 5. We mainly use AI tools on grammar checking in part 1, 2 and 3. For example, in the motivation part, we asked AI if there are any grammar mistakes or phrases that need improvement. AI suggested that we can change “event posting and managing” to “event publishing and management”. We discussed whether the change would affect the clarity of the sentence. We decided to adopt the AI’s suggestion because it sounds more formal.
+### 7. Run the project locally
+Start both the backend server and frontend server with two terminals:
+```
+cd backend
+npm run dev
+cd frontend
+npm run dev
+```
+The backend should start on: http://localhost:4000.
+The frontend should start on: http://localhost:5173.
+
+### 8. (Optional) Deployment guide: 
+If you also want to deploy the app, here is an example setup using Railway, used by the team.
+- Create a new project and add 3 services, frontend (hosted from the /frontend folder from GitHub), backend (the /backend folder), and PostgreSQL database.
+- Configure backend service variables. E.g. The .env variables in local development and `DATABASE_URL` from the database service.
+- Configure frontend service variables. There is just one to configure:
+`VITE_API_URL=the backend service url`
+- Set Public Networking for the frontend. Be careful of the port number (using the default should be fine).
+
+## Deploymeny Information
+The application is deployed on Railway. It is available at: frontend-production-9b35.up.railway.app. 
+
+## AI Assistance & Verification
+We used AI tools mainly in the three areas: System design, debugging and conceptual / technical understanding. 
+
+Firstly, when we want to add certain functions to the project, we use AI to help design code workflows. For example, in the first example in ai-session, we asked for suggestions on backend workflow design instead of asking for exact codes. AI suggested us to separate ticket creation and approval into different stages, and to add states like “pending” and “approved” to the ticket generation process. We adopted the general idea, but did not use the same API that AI suggested. We apply the idea using existing routes to fit our own code and backend design.
+
+Second, we used AI for code review and debugging. Since there are too many files in our project, it is sometimes hard to define which part leads to programming issues. So we asked AI to go through the files and tell us which part could be causing problems. Apart from debugging an exact code issue, AI also helped us to identify potential issues in the project. As mentioned in ai-session file, AI helps us to find concurrency risks in ticket purchasing, insecure handling of JWT secrets and some frontend type inconsistencies. We did not directly apply all suggestions, but instead prioritized fixes based on their severity. In this way, we can avoid extra work.
+
+Furthermore, we used AI to clarify any technical or conceptual concepts. For example, we asked about possible cloud storage applications we can use, or how to use JWT. AI saved our time on searching for the best choice and further helped us to understand selected options.
+One limitation we observed in AI is that its suggestions were sometimes too generic or not fully aligned with our project scope. It may get very complex if we fully follow what AI suggested. So we need to decide ourselves if we want to follow AI’s suggestions. We also need to ensure that the AI does not generate incorrect or fabricated concepts when responding to topics we are unfamiliar with.
+
+To ensure correctness, we verified AI-generated ideas through manual testing. This included manually testing user flows, checking backend logs and validating API behavior. In addition, we did not fully rely on AI responses. When AI suggestions were unclear or when we lacked confidence in the results, we cross-checked them with external sources such as documentation and community solutions (e.g., Stack Overflow or official guides). This helped us to confirm that the information was not fabricated.
+
+## Individual Contribution
+| Task Area | Main Work Done | Charles | Yuchen |
+| --- | --- | --- | --- |
+| Project setup | Set up frontend/backend structure, basic config, and repo organization | √ | √ |
+| Authentication | Register/login, JWT handling, role-based access control | √ |  |
+| Event management | Create, edit, delete events, organizer-side event logic |  | √ |
+| Ticket system | Ticket purchase flow, QR/ticket code logic, my tickets page | √ |  |
+| Student discount flow | Student ID upload, discount review logic, organizer approval flow |  | √ |
+| Document storage | Upload/download document handling, storage provider integration |  | √ |
+| Frontend pages/UI | Main pages, routing, form UI, dashboard layout | √ |  |
+| Testing and bug fixing | Debugging, reviewing AI suggestions, fixing major issues | √ | √ |
+| Deployment/config | Environment variables, package setup, deployment-related fixes | √ |  |
+| Documentation/report | README, report writing, AI session record, presentation materials | √ | √ |
+
+## Lessons Learned and Concluding Remarks
+Through this project, we experienced how to build a full-stack system from scratch while making different parts work together reliably. During development, we realized that we need to consider everything carefully including: backend logic, frontend logic, database design, storage and deployment. Any small mistake may influence the whole system. It is actually hard to make sure each part is working and error-prone when we want to add some new functionalities to existing designs. Each new change is a challenge.
+
+We also learned that project priorities are important. Within the limited course timelines, it was not realistic to perfect every part of the system. So we had to decide the more major issues. In our case, we focused more on core workflows first and then started to edit the main workflow by adding small new features. This strategy helped us to submit a complete website within time. 
+
+Another lesson we learned was that AI can be a useful tool for brainstorming, debugging and suggesting. However, we need to check its suggestions carefully to make sure the project is working as expected as AI can make mistakes. It is still important for us to understand the concepts or logics before adopting AI’s suggestions. 
+
+Overall, the project helped us understand the challenges and workflows of designing a real and complete web application. We not only learned conceptual knowledge, but also gained hands-on experiences and practical skills in designing, debugging and integrating different components into a cohesive application within a team setting. 
