@@ -4,7 +4,7 @@ Charles Yu 1006718348 charlesyuzq.yu@mail.utoronto.ca
 Yuchen Xu 1006708779 yuchenzoe.xu@mail.utoronto.ca  
 
 ## Demo 
-[video]\(link\)  
+[Demo Video](https://drive.google.com/file/d/15KP_-N15SNXuAAU_oycIak-6BReY8E3J/view?usp=sharing)  If the link doesn't work, the same video is also available in the root directory of this repo.  
 Try the app live at: [Event Ticketing Application](https://frontend-production-9b35.up.railway.app/)
 
 ## Motivation
