@@ -108,45 +108,6 @@ Here is a summary of key features which are compliant with course requirements.
 
 These functionalities and features together form a complete and reliable system, and are sufficient to support small-scale activities such as events by student unions. Therefore, it successfully achieved our objectives.  
 
-## Initial Independent Reasoning (Before Using AI)
-Our initial decision is to use separate frontend and backend, with React for frontend, and Express for backend with REST APIs. In this way, the frontend and backend are independent which makes the code easier to understand and maintain.This also allows a better independent development. For a team project, separating frontend and backend makes parallel work easier.
-
-For the database, we expect to have the following relational entities stored in PostgreSQL: Users, Events, Registrations, Tickets, Student Verification. The database will be processed in the backend to ensure consistency and the frontend will primarily fetch and display data through REST APIs. The client-side state will be limited to UI interactions such as form inputs. 
-
-We will focus on building a complete workflow instead of adding many features in the beginning. Our main features include: role-based authentication (Organizer or Attendee), event creation and management, QR-based ticket generation and validation, student ID upload and verification. For additional features, we still need to decide. We will not implement real payment processing, considering the complexity of it within the limited timeline. Our aim is to build a smaller but well-integrated system instead of a larger but incomplete platform. 
-
-Before start, we expect the following challenges: 
-- We need to design a clean role-based authentication since organizers and attendees have different interfaces and permissions.
-- Building system architecture and designing a feasible database schema could be challenging because it is the basement of the whole project. We need to think clearly about how to coordinate frontend and backend development.
-- Secure QR validation may be a challenge because we may need to cope with multiple requests simultaneously. The backend logic needed to be carefully designed to ensure safety. 
-
-For work division, we decided to divide responsibilities by features. We will divide the main features to each team member since this would reduce fragmentation and improve consistency. Before feature implementation, we plan to jointly design the database schema, project architecture and APIs to ensure misunderstanding and inconsistency in the later phase. 
-
-## AI Assistance Disclosure
-We did not use AI at all in part 4 and 5. We mainly use AI tools on grammar checking in part 1, 2 and 3. For example, in the motivation part, we asked AI if there are any grammar mistakes or phrases that need improvement. AI suggested that we can change “event posting and managing” to “event publishing and management”. We discussed whether the change would affect the clarity of the sentence. We decided to adopt the AI’s suggestion because it sounds more formal.
-  - Option B, Separate Frontend & Backend is chosen, with React for frontend UI, Express.js for backend server and RESTful API design (with proper documentation).
-- Additional Features:
-  - User Authentication and Authorization: register/login, access control, etc.
-  - Real-Time Functionality: live notification and dashboard updates.
-  - Integration with External Services: email notifications.
-
-### Scope:
-This project focuses on full-stack web development elements. 
-- The main scope of the project is to develop a web application with complete backend/frontend environments, aiming for simple event organization and small-scale ticket sales activities. Some basic additions such as cloud storage are also inside the scope to hence the reliability of the tool. Only fundamental features discussed in above sections are inside the scope.
-- Sophisticated security designs and database designs are not in the scope. Real transaction mechanisms and protections are not in the scope. Performance and traffic controls are also not focused.
-  - However, these are all valuable features in an event ticketing system and could be saved as potential improvements for the future. The team is interested in pursuing beyond the requirements after the course.
- 
-### Feasibility:
-The objective and scope of the project is achievable within the course timeframe. Two user mode (organizer and customer) backend will be implemented first, with core event creation and ticketing selling mechanics. Followed by frontend UI design, features at this point will already be enough to demonstrate all course requirements. By exploring additional features (e.g. live notification, automated verification, etc), the team has flexibility to decide what to be implemented based on time availability. This ensures completion of course expectations, while also keeping the project feasible.  
-
-Detailed plans and work distributions can be found in the below section: Tentative Plan.
-
-## Technical Stack
-
-## Features
-
-## User Guide
-
 ## Development Guide
 ### 1. Clone the repository
 Clone the project from GitHub and move into the project folder:
