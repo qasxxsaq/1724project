@@ -1,9 +1,5 @@
 # Event Ticketing Application - ECE1724 Project 
-## Team Information  
-Charles Yu 1006718348 charlesyuzq.yu@mail.utoronto.ca  
-Yuchen Xu 1006708779 yuchenzoe.xu@mail.utoronto.ca  
-
-## Motivation (to be edited)
+## Motivation
 Many small and medium-sized student organizations such as campus clubs rely on Google Forms, spreadsheets or emails to manage event registration. When identity verification, event payment processing, or ticket validation are required, significant manual effort is typically involved. Organizers need to verify tickets, track approvals and distribute tickets separately. As a result, the process of recording and organizing event registration and participation data becomes time-consuming and error-prone. Additionally, real-time attendance tracking and fraud prevention are rarely supported in this process.
 
 We aim to build a platform that provides a lightweight event and ticketing management system for small and medium-sized events that supports event publishing, identity verification, ticket generation, and ticket validation. This project is worth pursuing because event and ticket management remains inefficient and error-prone for many small or mid-sized student organizations. While there are large commercial platforms(such as Eventbrite), it is relatively complex to use them and the service fees are not low for small events. Therefore, a simple, efficient and fully featured event and ticketing management platform that reduces manual workload is in demand. 
@@ -14,19 +10,17 @@ The primary target users includes:
 
 By integrating event publishing and management, ticket generation and validation into a single platform, this project demonstrates a practical and worthwhile solution that optimizes event workflows, reduces manual errors, and enhances the overall efficiency of small-scale event management. 
 
-## Objective (To be edited)
+## Objective and Key Features
+### Objective:
 The objective of this project is to develop an event ticketing platform, which includes an organizer mode for managing events and a customer mode for users to purchase and manage tickets. Specifically, organizers will be able to create events, monitor ticket selling status, and verify user-uploaded documents for discounts. Customers will be able to register/login, view event information, make purchases, upload documents and receive their downloadable tickets (a QR code with other information).  
 
-## Technical Stack
 ### Core Features:
-
-### Implementation approach:
+#### Technical implementation approach
 Frontend: TypeScript, React  
 Backend: TypeScript, Express.js  
-Tailwind CSS was used for styling.  
-shadcn/ui library was used for reusable UI components.  
-Responsive frontend layout was implemented to adapt different screen sizes, and was made mobile device compatible. Responsive interaction designs were also implemented, such as live notifications and live dashboards. 
-
+Tailwind CSS will be used for styling.  
+shadcn/ui library will be used to assist development and improve efficiency.  
+Responsive frontend designs will be implemented, such as live notification and live dashboard updates.  
 
 #### Database schema and relationships
 TypeScript will be used for all backend/server code, and the relational database will be created using PostgreSQL.  
